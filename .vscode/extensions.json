@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "meganrogge.template-string-converter",
+    "esbenp.prettier-vscode",
+    "christian-kohler.path-intellisense"
+  ]
+}

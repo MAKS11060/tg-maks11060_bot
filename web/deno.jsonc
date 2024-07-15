@@ -1,0 +1,10 @@
+{
+  // "name": "@scope/src",
+  "lock": false,
+  "compilerOptions": {
+    "lib": [
+      "esnext",
+      "DOM",
+    ]
+  }
+}
