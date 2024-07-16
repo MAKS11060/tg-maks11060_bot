@@ -66,7 +66,7 @@ bot.on('message', async (c) => {
     )
   }
 
-  if (text === '/art') {
+  if (text === '/art' || text === '/art@maks11060_bot') {
     await c.deleteMessage()
 
     try {
@@ -86,6 +86,8 @@ bot.on('message', async (c) => {
       })
     }
   }
+
+  console.error('unknown command', text)
 })
 
 bot.on('callback_query:data', async (c) => {

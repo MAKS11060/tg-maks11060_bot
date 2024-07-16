@@ -11,10 +11,10 @@ const getEnv = (key: string): string => {
 const bot = new Bot(getEnv('BOT_TOKEN')!)
 
 if (Deno.args.find((arg) => ['-s', '--set'].includes(arg))) {
-  const status = bot.api.setWebhook(getEnv('WEBHOOK_URI')!, {
+  const status = await bot.api.setWebhook(getEnv('WEBHOOK_URI'), {
     secret_token: getEnv('WEBHOOK_SECRET'),
   })
-  console.log('setWebhook:', status)
+  console.log(`setWebhook: ${status} | ${getEnv('WEBHOOK_URI')}`,)
 } else if (Deno.args.find((arg) => ['-r', '--remove'].includes(arg))) {
   console.log('deleteWebhook:', await bot.api.deleteWebhook())
 } else {
