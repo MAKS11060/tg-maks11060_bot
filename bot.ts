@@ -5,22 +5,19 @@ import {fmt, link} from 'npm:@grammyjs/parse-mode'
 import {Bot, InlineKeyboard} from 'npm:grammy'
 import {Danbooru} from './src/danbooru.ts'
 
-const bot = new Bot(Deno.env.get('BOT_TOKEN')!)
+export const bot = new Bot(Deno.env.get('BOT_TOKEN')!)
 const danbooru = new Danbooru({
   login: Deno.env.get('DANBOOURU_LOGIN')!,
   apikey: Deno.env.get('DANBOOURU_APIKEY')!,
 })
 
-bot.start()
 bot.catch((e) => {
   console.error(e)
 })
 
 const getArt = async () => {
-  const art = await danbooru.userFavorites('maks11060').catch((e) => {
-    console.error(e)
-    return null
-  })
+  // const art = await danbooru.userFavorites('maks11060')
+  const art = await danbooru.saveSearchPosts()
   if (art === null) throw new Error('art is null')
 
   const uri = art.file_size >= 5242880 ? art.large_file_url : art?.file_url!
@@ -84,7 +81,8 @@ bot.on('message', async (c) => {
     } catch (e) {
       console.error(e)
       return c.reply('Error', {
-        reply_markup: new InlineKeyboard().text('retry', 'art-retry'),
+        reply_markup: new InlineKeyboard().text('remove', 'self-delete'),
+        // reply_markup: new InlineKeyboard().text('retry', 'art-retry'),
       })
     }
   }
@@ -112,8 +110,9 @@ bot.on('callback_query:data', async (c) => {
       })
       return c.editMessageReplyMarkup({reply_markup: artKB})
     } catch (e) {
+      console.error(e)
       return c.reply('Error', {
-        reply_markup: new InlineKeyboard().text('retry', 'art-retry'),
+        reply_markup: new InlineKeyboard().text('remove', 'self-delete'),
       })
     }
   }
