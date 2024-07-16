@@ -1,5 +1,5 @@
 {
-  "name": "tg-maks11060",
+  // "name": "tg-maks11060",
   "lock": false,
   "tasks": {
     "dev": "deno run -A --unstable-hmr main.ts",
@@ -26,7 +26,7 @@
   },
   "workspace": {
     "members": [
-      "./web"
+      // "./web"
     ]
   }
 }
