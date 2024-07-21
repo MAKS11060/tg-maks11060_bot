@@ -28,7 +28,7 @@ if (Deno.env.has('WEBHOOK_SECRET')) {
       }
     }
 
-    return Response.redirect('https://github.com/MAKS11060/deno-tg')
+    return Response.redirect('https://github.com/MAKS11060/tg-maks11060_bot')
   }
 
   if (Deno.env.has('KEY') && Deno.env.has('CERT')) {
