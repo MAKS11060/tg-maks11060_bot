@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run -A --unstable-hmr
+#!/usr/bin/env -S deno run -A --watch-hmr
 
 import {webhookCallback} from 'npm:grammy'
 import {bot} from './bot.ts'

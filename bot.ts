@@ -1,9 +1,10 @@
-#!/usr/bin/env -S deno run -A --unstable-hmr
+#!/usr/bin/env -S deno run -A --watch-hmr
 
 import 'jsr:@std/dotenv/load'
 import {fmt, link} from 'npm:@grammyjs/parse-mode'
 import {Bot, InlineKeyboard} from 'npm:grammy'
-import {Danbooru} from './src/danbooru.ts'
+import {Danbooru} from './src/lib/danbooru.ts'
+import {createStateManager} from './src/lib/state.ts'
 
 export const bot = new Bot(Deno.env.get('BOT_TOKEN')!)
 const danbooru = new Danbooru({
@@ -11,13 +12,23 @@ const danbooru = new Danbooru({
   apikey: Deno.env.get('DANBOOURU_APIKEY')!,
 })
 
-bot.catch((e) => {
-  console.error(e)
-})
+type CommandState =
+  | {type: 'self-delete'}
+  | {type: 'art-save'}
+  | {type: 'art-retry'; options?: GetArtOptions}
 
-const getArt = async () => {
+const stateManager = createStateManager<CommandState>()
+
+type GetArtOptions = {id?: string | null; user?: string | null}
+
+const getArt = async (options: GetArtOptions = {}) => {
   // const art = await danbooru.userFavorites('maks11060')
-  const art = await danbooru.saveSearchPosts()
+  // const art = id ? await danbooru.post(id) : await danbooru.saveSearchPosts()
+  const art = options.id
+    ? await danbooru.post(options.id)
+    : options.user
+    ? await danbooru.userFavorites(options.user)
+    : await danbooru.saveSearchPosts()
   if (art === null) throw new Error('art is null')
 
   const uri = art.file_size >= 5242880 ? art.large_file_url : art?.file_url!
@@ -36,73 +47,142 @@ const getArt = async () => {
   return {art, uri, caption}
 }
 
-const artKB = new InlineKeyboard()
-  .text('remove', 'self-delete')
-  .text('save', 'art-save')
-  .row()
-  .text('new art', 'art-retry')
+const extractId = (input: string): string | null => {
+  const regex = /\/posts\/(\d+)|^(\d+)$/
+  const match = input.trim().match(regex)
 
-bot.on('message', async (c) => {
-  const {text} = c.message
-
-  if (text === '/upd') {
-    bot.api.setMyCommands([
-      // {command: '/upd', description: 'Update bot commands'},
-      {command: '/art', description: 'Danbooru art'},
-    ])
+  if (match) {
+    return match[1] || match[2]
   }
 
-  if (text === '/start') {
-    const kb = new InlineKeyboard()
-      // .text('btn-1')
-      // .text('btn-2')
-      .text('remove', 'self-delete')
-      .row()
-      .webApp('open app', 'https://tg-maks11060.deno.dev/?utm=tg')
+  return null
+}
 
-    await c.reply(
-      `Hello ${c.message.from.username ?? c.message.from.first_name}`,
-      {reply_markup: kb}
+const getArtKB = (options?: GetArtOptions) => {
+  const kb = new InlineKeyboard()
+    .text('remove', stateManager.createState({type: 'self-delete'}))
+    .text('save', stateManager.createState({type: 'art-save'}))
+
+  if (!options?.id) {
+    kb.row().text(
+      'new art',
+      stateManager.createState({type: 'art-retry', options})
     )
   }
 
-  if (text === '/art' || text === '/art@maks11060_bot') {
-    await c.deleteMessage()
+  return kb
+}
 
-    try {
-      const {uri, art, caption} = await getArt()
-      return c.replyWithPhoto(uri, {
-        disable_notification: true,
-        reply_markup: artKB,
-        has_spoiler: art.rating === 'e',
-        caption: caption.text,
-        caption_entities: caption.entities,
-      })
-    } catch (e) {
-      console.error(e)
-      return c.reply('Error', {
-        reply_markup: new InlineKeyboard().text('remove', 'self-delete'),
-        // reply_markup: new InlineKeyboard().text('retry', 'art-retry'),
-      })
+bot.catch((e) => {
+  console.error(e)
+})
+
+bot.command('start', async (c) => {
+  c.deleteMessage()
+
+  const commands = [
+    {
+      command: '/art',
+      description: fmt`Random Art from ${link(
+        'Danbooru',
+        'https://danbooru.donmai.us/'
+      )}`,
+    },
+    {
+      command: '/art id/url',
+      description: fmt`Art from ${link(
+        'Danbooru',
+        'https://danbooru.donmai.us/'
+      )}\n`,
+    },
+    {
+      command: '/developer_info',
+      description: 'About developer',
+    },
+  ]
+  const startText = fmt([
+    fmt`Available commands\n\n`,
+    ...commands.map((v) => fmt`${v.command} - ${v.description}\n`),
+  ])
+
+  const kb = new InlineKeyboard()
+    // .text('Close', stateManager.createState({type: 'self-delete'}))
+    .webApp('Open Bot Repo', 'https://tg-maks11060.deno.dev/?utm=tg')
+
+  await c.reply(startText.text, {
+    reply_markup: kb,
+    link_preview_options: {is_disabled: true},
+    entities: startText.entities,
+  })
+})
+
+bot.command('developer_info', async (c) => {
+  await c.deleteMessage()
+  return c.reply('Developer Info', {
+    protect_content: true,
+    reply_markup: new InlineKeyboard()
+      .text('Close', stateManager.createState({type: 'self-delete'}))
+      .url('GitHub', 'https://github.com/maks11060')
+      .url('Bot Repo', 'https://github.com/MAKS11060/tg-maks11060_bot'),
+  })
+})
+
+bot.command('upd', async (c) => {
+  await c.deleteMessage()
+  return bot.api.setMyCommands([
+    // {command: '/upd', description: 'Update bot commands'},
+    {command: '/art', description: 'Danbooru art'},
+  ])
+})
+
+// ART
+bot.command('art', async (c) => {
+  await c.deleteMessage()
+
+  const artId = extractId(c.match)
+  try {
+    const artOptions: Parameters<typeof getArt>['0'] = {
+      ...(artId && {id: artId}),
+      ...(c.match.startsWith('u:') && {user: c.match.slice(2)}),
+      ...(c.match.startsWith('user:') && {user: c.match.slice(5)}),
     }
-  }
+    const {uri, art, caption} = await getArt(artOptions)
 
-  console.error('unknown command', text)
+    return c.replyWithPhoto(uri, {
+      disable_notification: true,
+      reply_markup: getArtKB(artOptions),
+      has_spoiler: art.rating === 'e',
+      caption: caption.text,
+      caption_entities: caption.entities,
+    })
+  } catch (e) {
+    console.error(e)
+    return c.reply('Error', {
+      reply_markup: new InlineKeyboard().text(
+        'remove',
+        stateManager.createState({type: 'self-delete'})
+      ),
+      // reply_markup: new InlineKeyboard().text('retry', 'art-retry'),
+    })
+  }
 })
 
 bot.on('callback_query:data', async (c) => {
   const {data} = c.callbackQuery
-  if (data === 'self-delete') {
+  const state = stateManager.fromState(data)
+  // console.log({state})
+
+  if (state.type === 'self-delete') {
     return c.deleteMessage()
   }
 
-  if (data === 'art-save') {
+  if (state.type === 'art-save') {
     return c.editMessageReplyMarkup({reply_markup: undefined})
   }
 
-  if (data === 'art-retry') {
+  if (state.type === 'art-retry') {
     try {
-      const {uri, art, caption} = await getArt()
+      const {uri, art, caption} = await getArt(state.options)
       await c.editMessageMedia({
         type: 'photo',
         media: uri.toString(),
@@ -110,11 +190,14 @@ bot.on('callback_query:data', async (c) => {
         caption: caption.text,
         caption_entities: caption.entities,
       })
-      return c.editMessageReplyMarkup({reply_markup: artKB})
+      return c.editMessageReplyMarkup({reply_markup: getArtKB(state.options)})
     } catch (e) {
       console.error(e)
       return c.reply('Error', {
-        reply_markup: new InlineKeyboard().text('remove', 'self-delete'),
+        reply_markup: new InlineKeyboard().text(
+          'remove',
+          stateManager.createState({type: 'self-delete'})
+        ),
       })
     }
   }

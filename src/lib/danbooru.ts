@@ -86,12 +86,12 @@ export class Danbooru {
     this.#origin.password = config.apikey
   }
 
-  async post(id: number) {
+  async post(id: number | string) {
     const uri = new URL(`/posts/${id}.json`, this.#origin)
 
     const res = await fetch(uri)
     if (!res.ok) return null
-    return await res.json() as Post
+    return (await res.json()) as Post
   }
 
   async saveSearchPosts() {
@@ -100,7 +100,7 @@ export class Danbooru {
 
     const res = await fetch(uri)
     if (!res.ok) return null
-    return await res.json() as Post
+    return (await res.json()) as Post
   }
 
   async userFavorites(username: string) {
@@ -109,6 +109,6 @@ export class Danbooru {
 
     const res = await fetch(uri)
     if (!res.ok) return null
-    return await res.json() as Post
+    return (await res.json()) as Post
   }
 }

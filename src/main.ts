@@ -3,7 +3,7 @@ import {delay} from 'jsr:@std/async'
 import {Format, Input} from 'telegraf'
 import {callbackQuery, message} from 'telegraf/filters'
 import {bot} from './bot.ts'
-import {Danbooru} from './danbooru.ts'
+import {Danbooru} from './lib/danbooru.ts'
 import {web} from './web.ts'
 
 const app = new Hono()
