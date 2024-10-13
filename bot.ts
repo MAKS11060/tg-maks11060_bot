@@ -98,6 +98,10 @@ bot.command('start', async (c) => {
       )}\n`,
     },
     {
+      command: '/warp',
+      description: fmt`Config for AmneziaWG\n`,
+    },
+    {
       command: '/developer_info',
       description: 'About developer',
     },
