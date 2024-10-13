@@ -146,8 +146,7 @@ export const generateWGConf = async () => {
   const [port, peerEndpointHost] = peerEndpoint.split(':', 2)
 
   // Create WG config
-  const conf = `
-[Interface]
+  const conf = `[Interface]
 PrivateKey = ${priv}
 S1 = 0
 S2 = 0
