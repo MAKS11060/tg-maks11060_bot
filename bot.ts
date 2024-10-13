@@ -112,8 +112,10 @@ bot.command('start', async (c) => {
   ])
 
   const kb = new InlineKeyboard()
-    // .text('Close', stateManager.createState({type: 'self-delete'}))
-    .webApp('Open Bot Repo', 'https://tg-maks11060.deno.dev/?utm=tg')
+  // .text('Close', stateManager.createState({type: 'self-delete'}))
+  if (c.message?.chat.type === 'private') {
+    kb.webApp('Open Bot Repo', 'https://tg-maks11060.deno.dev/?utm=tg')
+  }
 
   await c.reply(startText.text, {
     reply_markup: kb,
