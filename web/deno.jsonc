@@ -1,9 +1,0 @@
-{
-  "lock": false,
-  "compilerOptions": {
-    "lib": [
-      "esnext",
-      "DOM"
-    ]
-  }
-}
