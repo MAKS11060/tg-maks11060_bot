@@ -1,8 +1,9 @@
 #!/usr/bin/env -S deno run -A --watch-hmr
 
 import 'jsr:@std/dotenv/load'
-import {fmt, link} from 'npm:@grammyjs/parse-mode'
-import {Bot, InlineKeyboard} from 'npm:grammy'
+import {code, fmt, link} from 'npm:@grammyjs/parse-mode'
+import {Bot, InlineKeyboard, InputFile} from 'npm:grammy'
+import {generateWGConf} from './src/lib/cfWarp.ts'
 import {Danbooru} from './src/lib/danbooru.ts'
 import {createStateManager} from './src/lib/state.ts'
 
@@ -11,6 +12,7 @@ const danbooru = new Danbooru({
   login: Deno.env.get('DANBOOURU_LOGIN')!,
   apikey: Deno.env.get('DANBOOURU_APIKEY')!,
 })
+const kv = await Deno.openKv()
 
 type CommandState =
   | {type: 'self-delete'}
@@ -129,10 +131,16 @@ bot.command('developer_info', async (c) => {
 
 bot.command('upd', async (c) => {
   await c.deleteMessage()
-  return bot.api.setMyCommands([
-    // {command: '/upd', description: 'Update bot commands'},
-    {command: '/art', description: 'Danbooru art'},
-  ])
+  if (c.message?.from.username !== 'MAKS11060') {
+    if (c.match === 'clear') {
+      return bot.api.setMyCommands([])
+    }
+
+    return bot.api.setMyCommands([
+      {command: '/art', description: 'Danbooru art'},
+      {command: '/warp', description: 'Get AmneziaWG Config'},
+    ])
+  }
 })
 
 // ART
@@ -167,6 +175,48 @@ bot.command('art', async (c) => {
   }
 })
 
+// WARP / WG
+bot.command('warp', async (c) => {
+  if (c.message?.from.is_bot) return c.reply('error')
+
+  try {
+    if (!c.message) return c.reply('error')
+    console.log(
+      `warp: ${c.chat.id} ${
+        c.message?.from.username ?? c.message?.from.first_name
+      }`
+    )
+
+    {
+      const res = await kv.get<string>(['wg', c.message.from.id])
+      const conf = res.value ?? (await generateWGConf()).conf
+      await kv.set(['wg', c.message.from.id], conf, {expireIn: 1000 * 60 * 5})
+
+      const data = new TextEncoder().encode(conf)
+      const f = new InputFile(data, 'wg.conf')
+      return c.replyWithDocument(f, {protect_content: true})
+    }
+
+    const {conf} = await generateWGConf()
+    const data = fmt`${code(`\`\`\`wg.conf\n${conf}\n\`\`\``)}`
+    return c.reply(data.text, {
+      entities: data.entities,
+      parse_mode: 'MarkdownV2',
+      protect_content: true,
+      link_preview_options: {is_disabled: true},
+    })
+  } catch (e) {
+    console.error(e)
+    return c.reply('Error', {
+      protect_content: true,
+      reply_markup: new InlineKeyboard().text(
+        'remove',
+        stateManager.createState({type: 'self-delete'})
+      ),
+    })
+  }
+})
+
 bot.on('callback_query:data', async (c) => {
   const {data} = c.callbackQuery
   const state = stateManager.fromState(data)
@@ -194,6 +244,7 @@ bot.on('callback_query:data', async (c) => {
     } catch (e) {
       console.error(e)
       return c.reply('Error', {
+        protect_content: true,
         reply_markup: new InlineKeyboard().text(
           'remove',
           stateManager.createState({type: 'self-delete'})

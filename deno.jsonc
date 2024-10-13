@@ -16,6 +16,9 @@
     "zod": "npm:zod",
     "zValidator": "npm:@hono/zod-validator"
   },
+  "unstable": [
+    "kv"
+  ],
   "deploy": {
     "project": "7a541b4d-000d-423a-88fd-74baeba183a6",
     "exclude": [
