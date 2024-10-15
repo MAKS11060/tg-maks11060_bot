@@ -182,6 +182,7 @@ bot.command('art', async (c) => {
 // WARP / WG
 bot.command('warp', async (c) => {
   if (c.message?.from.is_bot) return c.reply('error')
+  await c.deleteMessage()
 
   try {
     if (!c.message) return c.reply('error')
