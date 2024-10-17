@@ -143,7 +143,7 @@ export const generateWGConf = async () => {
       addresses: {v4: clientIpv4, v6: clientIpv6},
     },
   } = warpResponse.result.config
-  const [port, peerEndpointHost] = peerEndpoint.split(':', 2)
+  const [peerEndpointHost, port] = peerEndpoint.split(':', 2)
 
   // Create WG config
   const conf = `[Interface]
