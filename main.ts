@@ -1,7 +1,11 @@
 #!/usr/bin/env -S deno run -A --watch-hmr
 
+import 'jsr:@std/dotenv/load'
 import {webhookCallback} from 'npm:grammy'
 import {bot} from './src/bot.ts'
+
+import './src/commands/art.ts'
+import './src/commands/warp.ts'
 
 if (Deno.env.has('WEBHOOK_SECRET')) {
   const webhookHandler = webhookCallback(bot, 'std/http', {
