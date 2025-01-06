@@ -4,7 +4,7 @@ import {createCachedFetch} from 'https://raw.githubusercontent.com/MAKS11060/den
 import {fmt, link} from 'npm:@grammyjs/parse-mode'
 import {Bot, GrammyError, HttpError, InlineKeyboard, InlineQueryResultBuilder} from 'npm:grammy'
 import {warp} from './commands/warp.ts'
-import {tgBotLink_tme, tgBotNameMD} from './config.ts'
+import {tgBotLink_tme, tgBotNameMD, tgBotOwner} from './config.ts'
 import {danbooruTagsBuilder} from './deps.ts'
 import {danbooruApi, danbooruUri} from './lib/danbooru/danbooru.ts'
 
@@ -97,11 +97,12 @@ bot.command('developer_info', async (c) => {
 
 bot.command('upd', async (c) => {
   await c.deleteMessage()
-  if (c.message?.from.username !== 'MAKS11060') {
+  if (c.message?.from.username === tgBotOwner) {
     if (c.match === 'clear') {
       return bot.api.setMyCommands([])
     }
 
+    console.log('upd commands')
     await c.api.setMyCommands([
       {command: 'start', description: 'Print hello'},
       {command: 'help', description: 'Show help'},

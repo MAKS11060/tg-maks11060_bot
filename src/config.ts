@@ -1,3 +1,5 @@
+export const tgBotOwner = 'MAKS11060'
+
 export const tgBotLink = Deno.env.get('BOT_LINK')!
 export const tgBotLink_tme = `https://t.me/${tgBotLink}`
 export const tgBotLink_tg = `tg://${tgBotLink}`
