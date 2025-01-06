@@ -1,9 +1,9 @@
 #!/usr/bin/env -S deno run -A --watch-hmr
 
 import {createCachedFetch} from 'https://raw.githubusercontent.com/MAKS11060/deno-libs/main/web/cache.ts'
-import {fmt, link, } from 'npm:@grammyjs/parse-mode'
+import {fmt, link} from 'npm:@grammyjs/parse-mode'
 import {Bot, GrammyError, HttpError, InlineKeyboard, InlineQueryResultBuilder} from 'npm:grammy'
-import {tgBotLink_tme, tgBotNameMD} from "./src/config.ts"
+import {tgBotLink_tme, tgBotNameMD} from './src/config.ts'
 import {danbooruTagsBuilder} from './src/deps.ts'
 import {danbooruApi, danbooruUri} from './src/lib/danbooru/danbooru.ts'
 import {warp} from './src/warp.ts'
@@ -38,20 +38,20 @@ bot.command('start', async (c) => {
 })
 
 bot.command('help', async (c) => {
-//   const text = fmt`[MAKS11060\\#DEV](tg://maks11060_devbot) — *Help*
+  //   const text = fmt`[MAKS11060\\#DEV](tg://maks11060_devbot) — *Help*
 
-// *Commands*
-// /help \\- Print help
-// /menu \\- Show inline commands
+  // *Commands*
+  // /help \\- Print help
+  // /menu \\- Show inline commands
 
-// *[Amnezia VPN](https://github.com/amnezia-vpn/amnezia-client)*
-// /warp \\- Generate config for Amnezia VPN
-// /warp\\_alt \\- Generate a config with alternative parameters
+  // *[Amnezia VPN](https://github.com/amnezia-vpn/amnezia-client)*
+  // /warp \\- Generate config for Amnezia VPN
+  // /warp\\_alt \\- Generate a config with alternative parameters
 
-// *Anime Art from [Danbooru](https://danbooru.donmai.us)*
-// /art \\- Get random art`
+  // *Anime Art from [Danbooru](https://danbooru.donmai.us)*
+  // /art \\- Get random art`
 
-const text = fmt`[${tgBotNameMD}](${tgBotLink_tme}) — *Help*
+  const text = fmt`[${tgBotNameMD}](${tgBotLink_tme}) — *Help*
 
 *Commands*
 /help \\- Print help
@@ -96,18 +96,20 @@ bot.command('developer_info', async (c) => {
 })
 
 bot.command('upd', async (c) => {
-  if (c.from?.is_bot) {
-    return
-  }
-
   await c.deleteMessage()
-  await c.api.setMyCommands([
-    {command: 'start', description: 'Print hello'},
-    {command: 'help', description: 'Show help'},
-    {command: 'menu', description: 'Show inline commands'},
-    {command: 'warp', description: 'Generate warp config'},
-    {command: 'art', description: 'Get anime art'},
-  ])
+  if (c.message?.from.username !== 'MAKS11060') {
+    if (c.match === 'clear') {
+      return bot.api.setMyCommands([])
+    }
+
+    await c.api.setMyCommands([
+      {command: 'start', description: 'Print hello'},
+      {command: 'help', description: 'Show help'},
+      {command: 'menu', description: 'Show inline commands'},
+      {command: 'warp', description: 'Generate warp config'},
+      // {command: 'art', description: 'Get anime art'},
+    ])
+  }
 })
 
 bot.use(warp) // warp config generator
