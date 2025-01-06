@@ -1,41 +1,47 @@
-import { InlineKeyboard, InputFile } from 'npm:grammy'
-import { bot } from '../bot.ts'
-import { generateWarpConf } from '../lib/cfWarp.ts'
-import { stateManager } from './_state.ts'
+import {Composer, InlineKeyboard, InputFile} from 'npm:grammy'
+import {generateWarpConf, presets} from '../lib/cf-warp.ts'
 
+export const warp = new Composer()
 const kv = await Deno.openKv()
 
 // WARP / WG
-bot.command('warp', async (c) => {
-  if (c.message?.from.is_bot) return c.reply('error')
+warp.command(['warp', 'warp_alt'], async (c) => {
+  if (c.message?.from.is_bot) return await c.reply('error')
+
+  const isAlt = c.message?.text.startsWith('/warp_alt')
 
   try {
     await c.deleteMessage()
-
     if (!c.message) return c.reply('error')
     console.log(`warp: ${c.chat.id} ${c.message?.from.username ?? c.message?.from.first_name}`)
 
-    const res = await kv.get<string>(['wg', c.message.from.id])
-    const conf = res.value ?? (await generateWarpConf()).conf
-    await kv.set(['wg', c.message.from.id], conf, {expireIn: 1000 * 60 * 10})
+    let conf: string
+    const cachedConf = await kv.get<string>(['wg', c.message.from.id])
+    if (cachedConf.value) {
+      conf = cachedConf.value
+    } else {
+      conf = await generateWarpConf(isAlt ? presets.alt : presets.default)
+    }
 
-    const data = new TextEncoder().encode(conf)
-    const f = new InputFile(data, 'wg.conf')
-    return c.replyWithDocument(f, {protect_content: true})
+    // cache config
+    const op = kv.atomic()
+    op.set(['wg', c.message.from.id], conf, {expireIn: 1000 * 60 * 10})
+    op.sum(['wg-uses'], 1n)
+    await op.commit()
 
-    // const {conf} = await generateWGConf()
-    // const data = fmt`${code(`\`\`\`wg.conf\n${conf}\n\`\`\``)}`
-    // return c.reply(data.text, {
-    //   entities: data.entities,
-    //   parse_mode: 'MarkdownV2',
-    //   protect_content: true,
-    //   link_preview_options: {is_disabled: true},
-    // })
+    // to tg file
+    const wgConfFile = new InputFile(conf, `wg.${Math.floor(Date.now() / 1000)}.conf`)
+    return await c.replyWithDocument(wgConfFile, {
+      protect_content: true,
+      reply_markup: new InlineKeyboard() //
+        .text('Remove', 'self-delete'),
+    })
   } catch (e) {
     console.error(e)
-    return c.reply('Error', {
+    return await c.reply('Generate Warp config failed.\nTry again', {
       protect_content: true,
-      reply_markup: new InlineKeyboard().text('remove', stateManager.createState({type: 'self-delete'})),
+      reply_markup: new InlineKeyboard() //
+        .text('Remove', 'self-delete'),
     })
   }
 })

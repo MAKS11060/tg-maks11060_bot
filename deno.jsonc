@@ -1,35 +1,11 @@
 {
-  // "name": "tg-maks11060",
   "lock": false,
   "tasks": {
     "dev": "deno run -A --watch-hmr main.ts",
     "devr": "deno run -Ar --watch-hmr main.ts",
-    "start": "deno run -A main.ts",
-    "deploy": "deployctl deploy -p tg-maks11060 --prod src/edge.ts",
-    "deploy:env": "deployctl deployments redeploy --prod --env-file .edge.env",
-    "deploy:disable": "deployctl deployments redeploy --prod --env REVERSE_PROXY_URI=",
-  },
-  "imports": {
-    "hono": "jsr:@hono/hono",
-    "telegraf": "npm:telegraf",
-    "telegraf/filters": "npm:telegraf/filters",
-    "zod": "npm:zod",
-    "zValidator": "npm:@hono/zod-validator"
+    "start": "deno run -A main.ts"
   },
   "unstable": [
     "kv"
-  ],
-  "deploy": {
-    "project": "7a541b4d-000d-423a-88fd-74baeba183a6",
-    "exclude": [
-      "**/node_modules"
-    ],
-    "include": [],
-    "entrypoint": "edge.ts"
-  },
-  "workspace": {
-    "members": [
-      // "./web"
-    ]
-  }
+  ]
 }

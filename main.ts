@@ -2,7 +2,7 @@
 
 import 'jsr:@std/dotenv/load'
 import {webhookCallback} from 'npm:grammy'
-import {bot} from './dev.ts'
+import {bot} from './src/bot.ts'
 
 if (Deno.env.has('WEBHOOK_SECRET')) {
   const webhookHandler = webhookCallback(bot, 'std/http', {
