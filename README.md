@@ -1,6 +1,6 @@
 # Telegram Bot
 
-- [MAKS11060#BOT](https://t.me/maks11060_dev)
+- [MAKS11060#BOT](https://t.me/maks11060_bot)
 
 ### Commands
 
