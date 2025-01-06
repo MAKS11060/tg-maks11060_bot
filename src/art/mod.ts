@@ -1,8 +1,9 @@
 import {fmt, link} from 'npm:@grammyjs/parse-mode'
-import {InlineKeyboard, CallbackQueryContext, Context} from 'npm:grammy'
-import {bot} from '../bot.ts'
+import {Composer, Context, InlineKeyboard} from 'npm:grammy'
+import {GetArtOptions, stateManager} from '../commands/_state.ts'
 import {DanbooruPost, danbooruUri, getPost, getRandomPost, getRandomUserFav} from '../lib/danbooru/danbooru.ts'
-import {CommandState, GetArtOptions, stateManager} from './_state.ts'
+
+export const art = new Composer()
 
 const fmtPost = (post: DanbooruPost) => {
   const img =
@@ -41,7 +42,7 @@ const extractId = (input: string) => {
 
 const getArtKB = (options?: GetArtOptions) => {
   const kb = new InlineKeyboard()
-    .text('remove', stateManager.createState({type: 'self-delete'}))
+    .text('remove', 'self-delete')
     .text('save', stateManager.createState({type: 'art-save'}))
 
   if (!options?.id) {
@@ -51,7 +52,29 @@ const getArtKB = (options?: GetArtOptions) => {
   return kb
 }
 
-bot.command('art', async (c) => {
+const replyPost = (c: Context, post: DanbooruPost, options?: GetArtOptions) => {
+  const {img, caption, has_spoiler} = fmtPost(post)
+
+  if (post.file_ext === 'gif') {
+    return c.replyWithAnimation(img, {
+      disable_notification: true,
+      reply_markup: getArtKB(options),
+      caption_entities: caption.entities,
+      caption: caption.text,
+      has_spoiler,
+    })
+  }
+
+  return c.replyWithPhoto(img, {
+    disable_notification: true,
+    reply_markup: getArtKB(options),
+    caption_entities: caption.entities,
+    caption: caption.text,
+    has_spoiler,
+  })
+}
+
+art.command('art', async (c) => {
   await c.deleteMessage()
 
   try {
@@ -67,76 +90,34 @@ bot.command('art', async (c) => {
       : options.user
       ? await getRandomUserFav(options.user)
       : await getRandomPost()
-    const {img, caption, has_spoiler} = fmtPost(post)
 
-    if (post.file_ext === 'gif') {
-      return c.replyWithAnimation(img, {
-        disable_notification: true,
-        reply_markup: getArtKB(options),
-        caption_entities: caption.entities,
-        caption: caption.text,
-        has_spoiler,
-      })
-    }
-
-    return c.replyWithPhoto(img, {
-      disable_notification: true,
-      reply_markup: getArtKB(options),
-      caption_entities: caption.entities,
-      caption: caption.text,
-      has_spoiler,
-    })
+    return replyPost(c, post, options)
   } catch (e) {
     console.error(e)
     return c.reply('Error', {
-      reply_markup: new InlineKeyboard().text('remove', stateManager.createState({type: 'self-delete'})),
+      reply_markup: new InlineKeyboard().text('remove', 'self-delete'),
       // reply_markup: new InlineKeyboard().text('retry', 'art-retry'),
     })
   }
 })
 
-export const handleStateArt = async (state: CommandState, c: Context) => {
+art.on('callback_query:data', async (c, next) => {
+  const state = stateManager.fromState(c.callbackQuery.data)
+
   if (state.type === 'art-save') {
     return c.editMessageReplyMarkup({reply_markup: undefined})
   }
 
   if (state.type === 'art-retry') {
-    try {
-      // const {uri, art, caption} = await getArt(state.options)
       const options = state.options
-
       const post = options?.id
         ? await getPost(options.id)
         : options?.user
         ? await getRandomUserFav(options.user)
         : await getRandomPost()
 
-      const {img, caption, has_spoiler} = fmtPost(post)
-
-      if (post.file_ext === 'gif') {
-        return c.replyWithAnimation(img, {
-          disable_notification: true,
-          reply_markup: getArtKB(options),
-          caption_entities: caption.entities,
-          caption: caption.text,
-          has_spoiler,
-        })
-      }
-
-      return c.replyWithPhoto(img, {
-        disable_notification: true,
-        reply_markup: getArtKB(options),
-        caption_entities: caption.entities,
-        caption: caption.text,
-        has_spoiler,
-      })
-      return c.editMessageReplyMarkup({reply_markup: getArtKB(state.options)})
-    } catch (e) {
-      console.error(e)
-      return c.reply('Error', {
-        protect_content: true,
-        reply_markup: new InlineKeyboard().text('remove', stateManager.createState({type: 'self-delete'})),
-      })
-    }
+    return replyPost(c, post, options)
   }
-}
+
+  await next()
+})

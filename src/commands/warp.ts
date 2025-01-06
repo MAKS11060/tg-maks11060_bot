@@ -1,7 +1,7 @@
-import {InlineKeyboard, InputFile} from 'npm:grammy'
-import {bot} from '../bot.ts'
-import {generateWGConf} from '../lib/cfWarp.ts'
-import {stateManager} from './_state.ts'
+import { InlineKeyboard, InputFile } from 'npm:grammy'
+import { bot } from '../bot.ts'
+import { generateWarpConf } from '../lib/cfWarp.ts'
+import { stateManager } from './_state.ts'
 
 const kv = await Deno.openKv()
 
@@ -16,7 +16,7 @@ bot.command('warp', async (c) => {
     console.log(`warp: ${c.chat.id} ${c.message?.from.username ?? c.message?.from.first_name}`)
 
     const res = await kv.get<string>(['wg', c.message.from.id])
-    const conf = res.value ?? (await generateWGConf()).conf
+    const conf = res.value ?? (await generateWarpConf()).conf
     await kv.set(['wg', c.message.from.id], conf, {expireIn: 1000 * 60 * 10})
 
     const data = new TextEncoder().encode(conf)

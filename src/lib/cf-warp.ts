@@ -2,7 +2,8 @@ import {exportKeyRawX25519, generateKeyPair} from 'jsr:@maks11060/crypto@0.2.0'
 import {decodeHex} from 'jsr:@std/encoding'
 import {encodeBase64} from 'jsr:@std/encoding/base64'
 
-interface CfApiOptions {
+// CF
+export interface CfApiOptions {
   method: string
   endpoint: string
   body: Record<string, unknown>
@@ -95,25 +96,12 @@ const cfApi = async (options: CfApiOptions) => {
 }
 
 // Conf
-export const preset = {
-  Jc: 4,
-  Jmin: 40,
-  Jmax: 70,
-}
-
-export const preset_alt = {
-  Jc: 120,
-  Jmin: 23,
-  Jmax: 911,
-}
-
-//
 interface ConfigOptions {
   priv: string
-  peerPub: string
+  pubKey: string
   clientIpv4: string
   clientIpv6: string
-  peerEndpointHost: string
+  host: string
   port: string | number
   preset?: {
     Jc: number
@@ -122,14 +110,27 @@ interface ConfigOptions {
   }
 }
 
+export const presets = {
+  default: {
+    Jc: 4,
+    Jmin: 40,
+    Jmax: 70,
+  },
+  alt: {
+    Jc: 120,
+    Jmin: 23,
+    Jmax: 911,
+  },
+}
+
 export const makeConfig = (options: ConfigOptions) => {
   return `[Interface]
 PrivateKey = ${options.priv}
 S1 = 0
 S2 = 0
-Jc = ${options.preset.Jc ?? preset.Jc}
-Jmin = ${options.preset.Jmin ?? preset.Jmin}
-Jmax = ${options.preset.Jmax ?? preset.Jmax}
+Jc = ${options.preset?.Jc ?? presets.default.Jc}
+Jmin = ${options.preset?.Jmin ?? presets.default.Jmin}
+Jmax = ${options.preset?.Jmax ?? presets.default.Jmax}
 H1 = 1
 H2 = 2
 H3 = 3
@@ -138,13 +139,13 @@ Address = ${options.clientIpv4}, ${options.clientIpv6}
 DNS = 1.1.1.1, 2606:4700:4700::1111, 1.0.0.1, 2606:4700:4700::1001
 
 [Peer]
-PublicKey = ${options.peerPub}
+PublicKey = ${options.pubKey}
 AllowedIPs = 0.0.0.0/1, 128.0.0.0/1, ::/1, 8000::/1
-Endpoint = ${options.peerEndpointHost}:${options.port}
+Endpoint = ${options.host}:${options.port}
 `
 }
 
-export const generateWarpConf = async () => {
+export const generateWarpConf = async (preset: ConfigOptions['preset'] = presets.default) => {
   const pair = await generateKeyPair('X25519')
   const keys = await exportKeyRawX25519(pair)
   const [priv, pub] = [encodeBase64(decodeHex(keys.private)), encodeBase64(decodeHex(keys.public))]
@@ -182,7 +183,7 @@ export const generateWarpConf = async () => {
   const {
     peers: [
       {
-        public_key: peerPub,
+        public_key: pubKey,
         endpoint: {host: peerEndpoint},
       },
     ],
@@ -190,17 +191,15 @@ export const generateWarpConf = async () => {
       addresses: {v4: clientIpv4, v6: clientIpv6},
     },
   } = warpResponse.result.config
-  const [peerEndpointHost, port] = peerEndpoint.split(':', 2)
+  const [host, port] = peerEndpoint.split(':', 2)
 
-  // Create Warp config
-  const conf = makeConfig({
+  return makeConfig({
     priv,
-    peerPub,
+    pubKey,
     clientIpv4,
     clientIpv6,
-    peerEndpointHost,
+    host,
     port,
+    preset,
   })
-
-  return {conf}
 }

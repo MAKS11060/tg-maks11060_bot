@@ -5,7 +5,7 @@ export type GetArtOptions = {
   user?: string
 }
 
-type CommandState =
+export type CommandState =
   | {type: 'self-delete'}
   | {type: 'art-save'}
   | {

@@ -2,10 +2,7 @@
 
 import 'jsr:@std/dotenv/load'
 import {webhookCallback} from 'npm:grammy'
-import {bot} from './src/bot.ts'
-
-import './src/commands/art.ts'
-import './src/commands/warp.ts'
+import {bot} from './dev.ts'
 
 if (Deno.env.has('WEBHOOK_SECRET')) {
   const webhookHandler = webhookCallback(bot, 'std/http', {
@@ -19,9 +16,7 @@ if (Deno.env.has('WEBHOOK_SECRET')) {
         const start = performance.now()
         const res = await webhookHandler(req)
         console.log(
-          `${req.method} %c${req.url} %c${(performance.now() - start).toFixed(
-            3
-          )} ms`,
+          `${req.method} %c${req.url} %c${(performance.now() - start).toFixed(3)} ms`,
           'color: green;',
           'color: blue;'
         )
@@ -43,5 +38,5 @@ if (Deno.env.has('WEBHOOK_SECRET')) {
     Deno.serve({port: 80}, handler)
   }
 } else {
-  bot.start()
+  bot.start().catch((e) => console.error('BOT Error', e))
 }

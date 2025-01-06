@@ -15,7 +15,12 @@ export interface paths {
             parameters: {
                 query?: {
                     tags?: components["parameters"]["tags"];
-                    limit?: components["parameters"]["limit"];
+                    /** @description The number of results to show per page */
+                    limit?: number;
+                    /** @description The number of results to show per page */
+                    page?: number;
+                    /** @description Determines the list of attributes that will be returned */
+                    only?: string;
                 };
                 header?: never;
                 path?: never;
@@ -57,7 +62,8 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
-                    id: components["parameters"]["id"];
+                    /** @description The post ID */
+                    id: number;
                 };
                 cookie?: never;
             };
@@ -134,7 +140,9 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    tags?: components["parameters"]["tags"];
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -204,6 +212,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/autocomplete.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    "search[type]": "tag" | "user" | "artist";
+                    "search[query]": string;
+                    /** @description The number of results to show per page */
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Get Autocomplete */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Autocomplete"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -253,8 +301,11 @@ export interface components {
             source: string;
             /** @description The MD5 hash of the file */
             md5: string;
-            /** @description The file extension */
-            file_ext: string;
+            /**
+             * @description The file extension
+             * @enum {string}
+             */
+            file_ext: "png" | "jpg" | "gif" | "swf" | "webm" | "mp4" | "zip";
             /** @description The size of the file */
             file_size: number;
             /**
@@ -312,6 +363,11 @@ export interface components {
              * @description The timestamp when the last comment was added
              */
             last_commented_at?: string | null;
+            /**
+             * Format: date-time
+             * @description The timestamp when the last note was added
+             */
+            last_noted_at?: string | null;
             /** @description The media asset associated with the post */
             media_asset: {
                 id: number;
@@ -338,10 +394,14 @@ export interface components {
                     file_ext: string;
                 }[];
             };
-            /** @description The bit flags of the post */
-            bit_flags: number;
+            /** @description The up score of the post */
+            up_score: number;
             /** @description The down score of the post */
             down_score: number;
+            /** @description The Pixiv ID of the post */
+            pixiv_id?: number | null;
+            /** @description The bit flags of the post */
+            bit_flags: number;
             /** @description Indicates whether the post has active children */
             has_active_children: boolean;
             /** @description Indicates whether the post has children */
@@ -358,15 +418,6 @@ export interface components {
             is_flagged: boolean;
             /** @description Indicates whether the post is pending */
             is_pending: boolean;
-            /**
-             * Format: date-time
-             * @description The timestamp when the last note was added
-             */
-            last_noted_at?: string | null;
-            /** @description The Pixiv ID of the post */
-            pixiv_id?: number | null;
-            /** @description The up score of the post */
-            up_score: number;
         };
         Posts: components["schemas"]["Post"][];
         User: {
@@ -441,6 +492,53 @@ export interface components {
             updated_at: string;
         };
         Users: components["schemas"]["User"][];
+        Autocomplete: {
+            /**
+             * @description The type of the autocomplete item, must be "tag"
+             * @enum {string}
+             */
+            type: "tag";
+            /** @description The label of the autocomplete item */
+            label: string;
+            /** @description The value of the autocomplete item */
+            value: string;
+            /**
+             * @description The category of the autocomplete item, must be 1 for artists
+             * @enum {number}
+             */
+            category: 1;
+        }[] | {
+            /**
+             * @description The type of the autocomplete item, must be "tag-word"
+             * @enum {string}
+             */
+            type: "tag-word";
+            /** @description The label of the autocomplete item */
+            label: string;
+            /** @description The value of the autocomplete item */
+            value: string;
+            /** @description The category of the autocomplete item, includes [0, 1, 3, 4, 5] */
+            category: 0 | 1 | 3 | 4 | 5;
+            /** @description The count of posts associated with the tag, must be >= 0 */
+            post_count: number;
+        }[] | {
+            /**
+             * @description The type of the autocomplete item, must be "user"
+             * @enum {string}
+             */
+            type: "user";
+            /** @description The label of the autocomplete item */
+            label: string;
+            /** @description The value of the autocomplete item */
+            value: string;
+            /** @description The ID of the user, must be greater than 0 */
+            id: number;
+            /**
+             * @description The level of the user
+             * @enum {string}
+             */
+            level: "member" | "gold" | "platinum" | "builder" | "admin";
+        }[];
     };
     responses: {
         /** @description The given parameters could not be parsed */
@@ -481,9 +579,7 @@ export interface components {
         };
     };
     parameters: {
-        id: number;
         tags: string;
-        limit: number;
     };
     requestBodies: never;
     headers: never;

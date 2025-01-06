@@ -1,6 +1,7 @@
 import {fmt, link} from 'npm:@grammyjs/parse-mode'
 import {Bot, InlineKeyboard} from 'npm:grammy'
 import {stateManager} from './commands/_state.ts'
+import {handleStateArt} from './commands/art.ts'
 
 export const bot = new Bot(Deno.env.get('BOT_TOKEN')!)
 
@@ -75,10 +76,12 @@ bot.command('upd', async (c) => {
 })
 
 bot.on('callback_query:data', async (c) => {
-  const {data} = c.callbackQuery
-  const state = stateManager.fromState(data)
+  const state = stateManager.fromState(c.callbackQuery.data)
 
   if (state.type === 'self-delete') {
     return c.deleteMessage()
   }
+
+  let res = await handleStateArt(state, c)
+  if (res) return res
 })
