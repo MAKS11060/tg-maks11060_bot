@@ -30,7 +30,8 @@ warp.command(['warp', 'warp_alt'], async (c) => {
     await op.commit()
 
     // to tg file
-    const wgConfFile = new InputFile(conf, `wg.${Math.floor(Date.now() / 1000)}.conf`)
+    const data = new TextEncoder().encode(conf)
+    const wgConfFile = new InputFile(data, `wg.${Math.floor(Date.now() / 1000)}.conf`)
     return await c.replyWithDocument(wgConfFile, {
       protect_content: true,
       reply_markup: new InlineKeyboard() //
