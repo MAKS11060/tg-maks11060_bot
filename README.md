@@ -15,6 +15,7 @@
 ### Inline commands
 
 #### [Danbooru](https://danbooru.donmai.us)
+
 ```ts
 // daily top
 @maks11060_bot hot
