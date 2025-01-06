@@ -1,16 +1,15 @@
 #!/usr/bin/env -S deno run -A --watch-hmr
 
-import {createCachedFetch} from 'https://raw.githubusercontent.com/MAKS11060/deno-libs/main/web/cache.ts'
 import {fmt, link} from 'npm:@grammyjs/parse-mode'
 import {Bot, GrammyError, HttpError, InlineKeyboard, InlineQueryResultBuilder} from 'npm:grammy'
 import {warp} from './commands/warp.ts'
 import {tgBotLink_tme, tgBotNameMD, tgBotOwner} from './config.ts'
-import {danbooruTagsBuilder} from './deps.ts'
+import {createCachedFetch, danbooruTagsBuilder} from './deps.ts'
 import {danbooruApi, danbooruUri} from './lib/danbooru/danbooru.ts'
 
 export const bot = new Bot(Deno.env.get('BOT_TOKEN')!)
 
-bot.catch((err) => {
+bot.catch((err) => {``
   const ctx = err.ctx
   console.error(`Error while handling update ${ctx.update.update_id}:`)
   const e = err.error
@@ -118,7 +117,7 @@ bot.use(warp) // warp config generator
 // Danbooru // TODO: move to other file
 const fetchDanbooru = await createCachedFetch({
   name: 'danbooru',
-  ttl: 60 * 60 * 1, // 1h
+  ttl: 60 * 30, // 30 min
   log: true,
 })
 
@@ -154,7 +153,7 @@ bot.inlineQuery(/^id\s+(?<numbers>(?:\d+\s*){1,10})/, async (c, next) => {
 
           const {text: caption, entities: caption_entities} = fmt([fmt`${artLink}`, ...characters])
 
-          return InlineQueryResultBuilder.photo(`${id}`, uri, {
+          return InlineQueryResultBuilder.photo(`post-${id}`, uri, {
             thumbnail_url: post.preview_file_url,
             caption,
             caption_entities,
@@ -237,19 +236,15 @@ bot.inlineQuery(/^fav(orite.?)?$/i, async (c, next) => {
 
     const {text: caption, entities: caption_entities} = fmt([fmt`${artLink}`, ...characters])
 
-    return InlineQueryResultBuilder.photo(`${post.id}`, uri, {
+    return InlineQueryResultBuilder.photo(`post-${post.id}`, uri, {
       thumbnail_url: post.preview_file_url,
       caption,
       caption_entities,
-      // reply_markup: new InlineKeyboard() //
-      //   .text('Remove', 'self-delete')
-      //   .text('Save', 'self-save'),
     })
   })
 
   return await c.answerInlineQuery(items, {
-    cache_time: 30,
-    is_personal: true,
+    // cache_time: 30,
     next_offset: `${offset + 1}`,
   })
 })
@@ -293,7 +288,7 @@ bot.inlineQuery(/hot/i, async (c, next) => {
 
     const {text: caption, entities: caption_entities} = fmt([fmt`${artLink}`, ...characters])
 
-    return InlineQueryResultBuilder.photo(`${post.id}`, uri, {
+    return InlineQueryResultBuilder.photo(`post-${post.id}`, uri, {
       thumbnail_url: post.preview_file_url,
       caption,
       caption_entities,
@@ -344,7 +339,7 @@ bot.inlineQuery(/^s(ave[s|d]?)?$/i, async (c, next) => {
 
     const {text: caption, entities: caption_entities} = fmt([fmt`${artLink}`, ...characters])
 
-    return InlineQueryResultBuilder.photo(`${post.id}`, uri, {
+    return InlineQueryResultBuilder.photo(`post-${post.id}`, uri, {
       thumbnail_url: post.preview_file_url,
       caption,
       caption_entities,
