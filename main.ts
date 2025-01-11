@@ -1,6 +1,5 @@
-#!/usr/bin/env -S deno run -A --watch-hmr
+#!/usr/bin/env -S deno run -A --watch-hmr --env-file
 
-import 'jsr:@std/dotenv/load'
 import {webhookCallback} from 'npm:grammy'
 import {bot} from './src/bot.ts'
 
