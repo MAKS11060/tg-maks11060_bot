@@ -41,19 +41,10 @@ const postToInlineResult = (post: DanbooruPost) => {
   })
 
   const {text: caption, entities: caption_entities} = fmt([fmt`${postLink}`, ...characters])
-
-  // TODO: test video/webm/mp4
-  if (post.file_ext === 'webm') {
-    // return InlineQueryResultBuilder.v(`post-${post.id}`, uri, post.preview_file_url, {
-    // thumbnail_mime_type: 'image/jpeg',
-    // caption,
-    // caption_entities,
-    // title: 'Title'
-    // })
-  }
+  const id = `post-${post.id}`
 
   if (post.file_ext === 'gif') {
-    return InlineQueryResultBuilder.gif(`post-${post.id}`, uri, post.preview_file_url, {
+    return InlineQueryResultBuilder.gif(id, uri, post.preview_file_url, {
       thumbnail_mime_type: 'image/jpeg',
       caption,
       caption_entities,
@@ -62,18 +53,31 @@ const postToInlineResult = (post: DanbooruPost) => {
   }
 
   if (post.file_ext === 'jpg' || post.file_ext === 'png') {
-    return InlineQueryResultBuilder.photo(`post-${post.id}`, uri, {
+    return InlineQueryResultBuilder.photo(id, uri, {
       thumbnail_url: post.preview_file_url,
       caption,
       caption_entities,
     })
   }
 
+  // TODO: test video/webm/mp4
+  if (post.file_ext === 'mp4') {
+    return InlineQueryResultBuilder.videoMp4(id, 'Video', post.file_url, post.preview_file_url, {
+      caption,
+      caption_entities,
+    })
+  }
+
   // unknown post format
-  return InlineQueryResultBuilder.article(`post-${post.id}`, `/posts/${post.id}`, {
-    url: postLink.text,
-    description: `ext:${post.file_ext}`,
-  }).text(`posts/${post.id}`, {})
+  if (post.file_ext) {
+    return InlineQueryResultBuilder.article(id, postLink.text + ` (${post.file_ext})`, {
+      description: characters.map((v) => v.text).join(' '),
+      url: new URL(`/posts/${post.id}`, danbooruUri).toString(),
+      thumbnail_url: post.preview_file_url,
+    }).text(postLink.text, {
+      entities: postLink.entities,
+    })
+  }
 }
 
 // @bot id 1 2 123
@@ -94,9 +98,14 @@ bot.inlineQuery(/^id\s+(?<numbers>(?:\d+\s*){1,10})/, async (c, next) => {
       })
     )
 
-    return await c.answerInlineQuery(posts.filter(Boolean) as [], {
-      is_personal: true,
-    })
+    return await c
+      .answerInlineQuery(posts.filter(Boolean) as [], {
+        is_personal: true,
+        cache_time: 10,
+      })
+      .catch((e) => {
+        console.error('Answer Err', e)
+      })
   }
 
   await next()
@@ -153,15 +162,14 @@ bot.inlineQuery(/^fav(orite.?)?$/i, async (c, next) => {
 
   if (!posts) return await next()
 
-  const items = posts?.map(postToInlineResult)
-
-  return await c.answerInlineQuery(items, {
+  return await c.answerInlineQuery(posts?.map(postToInlineResult).filter(Boolean) as [], {
     next_offset: `${offset + 1}`,
   })
 })
 
 bot.inlineQuery(/hot/i, async (c, next) => {
   const offset = parseInt(c.inlineQuery.offset) || 1
+
   const {data: posts} = await danbooruApi.GET('/posts.json', {
     fetch: fetchDanbooru,
     params: {
@@ -177,15 +185,17 @@ bot.inlineQuery(/hot/i, async (c, next) => {
       },
     },
   })
-
   if (!posts) return await next()
 
-  const items = posts?.map(postToInlineResult)
-
-  return await c.answerInlineQuery(items, {
-    cache_time: 30,
-    next_offset: `${offset + 1}`,
-  })
+  return await c
+    .answerInlineQuery(posts?.map(postToInlineResult).filter(Boolean) as [], {
+      // cache_time: 30,
+      is_personal: true,
+      next_offset: `${offset + 1}`,
+    })
+    .catch((e) => {
+      console.error('Answer Err', e)
+    })
 })
 
 // @bot s
@@ -209,10 +219,8 @@ bot.inlineQuery(/^s(ave[s|d]?)?$/i, async (c, next) => {
 
   if (!posts) return await next()
 
-  const items = posts?.map(postToInlineResult)
-
-  return await c.answerInlineQuery(items, {
-    cache_time: 30,
+  return await c.answerInlineQuery(posts?.map(postToInlineResult).filter(Boolean) as [], {
+    cache_time: 60,
     next_offset: `${offset + 1}`,
   })
 })
