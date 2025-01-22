@@ -1,6 +1,5 @@
-import {exportKeyRawX25519, generateKeyPair} from '@maks11060/crypto'
+import {exportKey, generateKeyPair} from '@maks11060/crypto'
 import {encodeBase64} from '@std/encoding/base64'
-import {decodeHex} from '@std/encoding/hex'
 
 // CF
 export interface CfApiOptions {
@@ -147,8 +146,8 @@ Endpoint = ${options.host}:${options.port}
 
 export const generateWarpConf = async (preset: ConfigOptions['preset'] = presets.default) => {
   const pair = await generateKeyPair('X25519')
-  const keys = await exportKeyRawX25519(pair)
-  const [priv, pub] = [encodeBase64(decodeHex(keys.private)), encodeBase64(decodeHex(keys.public))]
+  const keys = await exportKey('raw', pair)
+  const [priv, pub] = [encodeBase64(keys.privateKey), encodeBase64(keys.publicKey)]
 
   // Register
   const response = await cfApi({
