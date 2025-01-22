@@ -1,6 +1,6 @@
-import {exportKeyRawX25519, generateKeyPair} from 'jsr:@maks11060/crypto@0.2.0'
-import {decodeHex} from 'jsr:@std/encoding'
-import {encodeBase64} from 'jsr:@std/encoding/base64'
+import {exportKeyRawX25519, generateKeyPair} from '@maks11060/crypto'
+import {encodeBase64} from '@std/encoding/base64'
+import {decodeHex} from '@std/encoding/hex'
 
 // CF
 export interface CfApiOptions {

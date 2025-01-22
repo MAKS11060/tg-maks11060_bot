@@ -1,5 +1,5 @@
-import {fmt, link} from 'npm:@grammyjs/parse-mode'
-import {Composer, InlineKeyboard, InlineQueryResultBuilder} from 'npm:grammy'
+import {fmt, link} from '@grammyjs/parse-mode'
+import {Composer, InlineKeyboard, InlineQueryResultBuilder} from 'grammy'
 import {createCachedFetch, danbooruTagsBuilder} from '../deps.ts'
 import {danbooruApi, DanbooruPost, danbooruUri} from '../lib/danbooru/danbooru.ts'
 

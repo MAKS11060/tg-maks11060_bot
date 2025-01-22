@@ -1,5 +1,5 @@
-import {fmt} from 'npm:@grammyjs/parse-mode'
-import {Bot, GrammyError, HttpError, InlineKeyboard} from 'npm:grammy'
+import {fmt} from '@grammyjs/parse-mode'
+import {Bot, GrammyError, HttpError, InlineKeyboard} from 'grammy'
 import {inline_query} from './commands/inline-query.ts'
 import {warp} from './commands/warp.ts'
 import {tgBotLink_tme, tgBotNameMD, tgBotOwner} from './config.ts'

@@ -1,4 +1,5 @@
-import {Composer, InlineKeyboard, InputFile} from 'npm:grammy'
+import {ulid} from '@std/ulid'
+import {Composer, InlineKeyboard, InputFile} from 'grammy'
 import {generateWarpConf, presets} from '../lib/cf-warp.ts'
 
 export const warp = new Composer()
@@ -25,7 +26,9 @@ warp.command(['warp', 'warp_alt'], async (c) => {
 
     // cache config
     const op = kv.atomic()
+    const uidHash = await crypto.subtle.digest({name: 'SHA-256'}, new TextEncoder().encode(`${c.message.from.id}`))
     op.set(['wg', c.message.from.id], conf, {expireIn: 1000 * 60 * 10})
+    op.set(['wg-stats', ulid()], uidHash) // anonymous statistics
     op.sum(['wg-uses'], 1n)
     await op.commit()
 

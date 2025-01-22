@@ -1,7 +1,6 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env -S deno run -A --env-file
 
-import 'jsr:@std/dotenv/load'
-import {Bot} from 'npm:grammy'
+import {Bot} from 'grammy'
 
 const bot = new Bot(Deno.env.get('BOT_TOKEN')!)
 const me = await bot.api.getMe()

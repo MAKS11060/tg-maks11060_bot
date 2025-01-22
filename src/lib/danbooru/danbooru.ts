@@ -1,5 +1,5 @@
-import {encodeBase64} from 'jsr:@std/encoding/base64'
-import createClient from 'npm:openapi-fetch'
+import {encodeBase64} from '@std/encoding/base64'
+import createClient from 'openapi-fetch'
 import type {components, paths} from './danbooru.d.ts'
 
 export type DanbooruPost = components['schemas']['Post']
