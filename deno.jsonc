@@ -4,8 +4,8 @@
     "dev": "deno run -A --watch-hmr main.ts",
     "devr": "deno run -Ar --watch-hmr main.ts",
     "start": "deno run -A main.ts",
-    "deploy:list": "deployctl deployments list",
-    "deploy:delete:prev": "deployctl deployments delete --prev",
+    "deploy:ls": "deployctl deployments list",
+    "deploy:del:prev": "deployctl deployments delete --prev",
   },
   "unstable": [
     "kv"
