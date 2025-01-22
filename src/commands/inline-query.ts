@@ -1,5 +1,6 @@
 import {fmt, link} from '@grammyjs/parse-mode'
 import {Composer, InlineKeyboard, InlineQueryResultBuilder} from 'grammy'
+import {isDev} from "../config.ts"
 import {createCachedFetch, danbooruTagsBuilder} from '../deps.ts'
 import {danbooruApi, DanbooruPost, danbooruUri} from '../lib/danbooru/danbooru.ts'
 
@@ -20,7 +21,7 @@ const only = [
 const fetchDanbooru = await createCachedFetch({
   name: 'danbooru',
   ttl: 60 * 30, // 30 min
-  log: true,
+  log: isDev,
 })
 
 const postToInlineResult = (post: DanbooruPost) => {

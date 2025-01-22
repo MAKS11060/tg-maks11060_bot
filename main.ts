@@ -1,6 +1,6 @@
 #!/usr/bin/env -S deno run -A --watch-hmr --env-file
 
-import {GrammyError, webhookCallback} from 'npm:grammy'
+import {GrammyError, webhookCallback} from 'grammy'
 import {bot} from './src/bot.ts'
 
 if (Deno.env.has('WEBHOOK_SECRET')) {
