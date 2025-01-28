@@ -69,6 +69,10 @@ const postToInlineResult = (post: DanbooruPost) => {
     })
   }
 
+  if (post.file_ext === 'webp') {
+    return
+  }
+
   // unknown post format
   if (post.file_ext) {
     return InlineQueryResultBuilder.article(id, postLink.text + ` (${post.file_ext})`, {
