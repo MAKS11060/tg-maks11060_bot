@@ -1,7 +1,8 @@
 import {fmt, link} from '@grammyjs/parse-mode'
+import {createCachedFetch} from '@maks11060/web'
+import {danbooruTagsBuilder} from 'danbooru'
 import {Composer, InlineKeyboard, InlineQueryResultBuilder} from 'grammy'
 import {isDev} from "../config.ts"
-import {createCachedFetch, danbooruTagsBuilder} from '../deps.ts'
 import {danbooruApi, DanbooruPost, danbooruUri} from '../lib/danbooru/danbooru.ts'
 
 const bot = new Composer()

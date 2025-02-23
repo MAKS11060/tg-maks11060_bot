@@ -22,9 +22,11 @@
   "imports": {
     "@grammyjs/parse-mode": "npm:@grammyjs/parse-mode@^1.11.1",
     "@maks11060/crypto": "jsr:@maks11060/crypto@^0.3.0",
+    "@maks11060/web": "jsr:@maks11060/web@^0.0.3",
     "@std/encoding": "jsr:@std/encoding@^1.0.6",
     "@std/ulid": "jsr:@std/ulid@^1.0.0",
     "grammy": "npm:grammy@^1.34.0",
-    "openapi-fetch": "npm:openapi-fetch@^0.13.4"
+    "openapi-fetch": "npm:openapi-fetch@^0.13.4",
+    "danbooru": "https://raw.githubusercontent.com/MAKS11060/deno-libs/refs/heads/main/lib/danbooru-tags.ts?t=4"
   }
 }

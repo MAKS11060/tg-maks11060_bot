@@ -1,5 +1,5 @@
 import {encodeHex} from "@std/encoding/hex"
-import {ulid} from '@std/ulid'
+import {ulid} from '@std/ulid/ulid'
 import {Composer, InlineKeyboard, InputFile} from 'grammy'
 import {generateWarpConf, presets} from '../lib/cf-warp.ts'
 
