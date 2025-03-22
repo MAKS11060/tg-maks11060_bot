@@ -2,7 +2,7 @@ import {fmt, link} from '@grammyjs/parse-mode'
 import {createCachedFetch} from '@maks11060/web'
 import {danbooruTagsBuilder} from 'danbooru'
 import {Composer, InlineKeyboard, InlineQueryResultBuilder} from 'grammy'
-import {isDev} from "../config.ts"
+import {isDev} from '../config.ts'
 import {danbooruApi, DanbooruPost, danbooruUri} from '../lib/danbooru/danbooru.ts'
 
 const bot = new Composer()
@@ -70,7 +70,7 @@ const postToInlineResult = (post: DanbooruPost) => {
     })
   }
 
-  if (post.file_ext === 'webp') {
+  if (post.file_ext === 'webm') {
     return
   }
 
@@ -158,6 +158,7 @@ bot.inlineQuery(/^fav(orite.?)?$/i, async (c, next) => {
       query: {
         tags: danbooruTagsBuilder() //
           .ordfav('maks11060')
+          .tag('status:banned', true)
           .toString(),
         limit: 50,
         page: offset,
@@ -184,6 +185,7 @@ bot.inlineQuery(/hot/i, async (c, next) => {
           .order('rank')
           .rating(['e', 'q'], true)
           .tag('parent:none')
+          .tag('status:banned', true)
           .toString(),
         limit: 50,
         page: offset,
