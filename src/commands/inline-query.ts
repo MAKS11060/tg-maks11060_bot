@@ -236,6 +236,22 @@ bot.inlineQuery(/^s(ave[s|d]?)?$/i, async (c, next) => {
 bot.on('inline_query', async (c) => {
   console.log('%cUnknown inline query', 'color: orange', c.inlineQuery.query)
 
+  const offset = parseInt(c.inlineQuery.offset) || 1
+  const {data: posts} = await danbooruApi.GET('/posts.json', {
+    fetch: fetchDanbooru,
+    params: {
+      query: {
+        tags: danbooruTagsBuilder() //
+          .tag('user:maks11060')
+          .tag('status:banned', true)
+          .toString(),
+        limit: 49,
+        page: offset,
+        only,
+      },
+    },
+  })
+
   return await c.answerInlineQuery(
     [
       InlineQueryResultBuilder.article('t:help', 'Search help', {
@@ -245,6 +261,7 @@ bot.on('inline_query', async (c) => {
           .switchInlineCurrent('Saved', 'saved')
           .toTransposed(),
       }).text('Search help'),
+      ...(posts?.map(postToInlineResult).filter(Boolean) as []),
     ],
     {
       is_personal: true,
