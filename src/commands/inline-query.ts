@@ -16,6 +16,7 @@ const only = [
   'large_file_url',
   'preview_file_url',
   'tag_string_artist',
+  'tag_string_copyright',
   'tag_string_character',
 ].join(',')
 
@@ -25,25 +26,61 @@ const fetchDanbooru = await createCachedFetch({
   log: isDev,
 })
 
+const postToText = ({id, tag_string_artist, tag_string_character, tag_string_copyright}: DanbooruPost) => {
+  const removeUnderscore = (v: string) => v.replaceAll('_', ' ').trim()
+  const toUri = (tags: string) => {
+    const uri = new URL('/posts', danbooruUri)
+    uri.searchParams.set('tags', tags)
+    return uri.toString()
+  }
+
+  const copyrightTags = tag_string_copyright?.split(' ') || []
+  const characterTags = tag_string_character?.split(' ') || []
+
+  const charactersGroups = copyrightTags
+    .map((copyright) => {
+      const chars = characterTags.filter((char) => char.endsWith(`_(${copyright})`))
+      return [copyright, chars]
+    })
+    .filter(([, chars]) => chars.length) as [string, string[]][]
+
+  // Находим персонажей без копирайтов
+  const charactersAny = new Set(charactersGroups.flatMap((v) => v[1]))
+    .symmetricDifference(new Set(characterTags))
+    .values()
+    .toArray()
+    .map(removeUnderscore)
+  // const charactersAny = Array.from(
+  // new Set(characterTags.filter((char) => !charactersGroups.some(([_, chars]) => chars.includes(char))))
+  // ).map(removeUnderscore)
+
+  const formatCharacterGroup = ([copyright, characters]: [string, string[]]) =>
+    fmt([
+      fmt` ${link(removeUnderscore(copyright), toUri(copyright))}(`,
+      ...characters
+        .map((char) => char.replace(`_(${copyright})`, ''))
+        .map((char, i) => fmt`${link(removeUnderscore(char), toUri(char))}${i !== characters.length - 1 ? ', ' : ''}`),
+      ')',
+    ])
+
+  const fPostLink = fmt`${link(tag_string_artist || id.toString(), new URL(`/posts/${id}`, danbooruUri).toString())}`
+  const fCharacters = [
+    ...charactersGroups.map(formatCharacterGroup),
+    ...charactersAny.map((char) => fmt` ${link(char, toUri(char.replace(' ', '_')))}`),
+  ]
+
+  const {text: caption, entities: caption_entities} = fmt([fPostLink, ...fCharacters])
+  return {caption, caption_entities}
+}
+
 const postToInlineResult = (post: DanbooruPost) => {
   const uri =
     post.file_size >= 5242880 // 5 MiB tg limit
       ? post.large_file_url
       : post?.file_url!
 
-  const postLink = fmt`${link(
-    post.tag_string_artist ? post.tag_string_artist : post.id,
-    new URL(`/posts/${post.id}`, danbooruUri).toString()
-  )}`
-
-  const characters = post.tag_string_character.split(' ').map((char) => {
-    const uri = new URL('/posts', danbooruUri)
-    uri.searchParams.set('tags', char)
-    return fmt` ${link(char, uri.toString())}`
-  })
-
-  const {text: caption, entities: caption_entities} = fmt([fmt`${postLink}`, ...characters])
   const id = `post-${post.id}`
+  const {caption, caption_entities} = postToText(post)
 
   if (post.file_ext === 'gif') {
     return InlineQueryResultBuilder.gif(id, uri, post.preview_file_url, {
