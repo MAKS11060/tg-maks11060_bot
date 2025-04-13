@@ -49,7 +49,6 @@ const postToText = ({id, tag_string_artist, tag_string_character, tag_string_cop
     .symmetricDifference(new Set(characterTags))
     .values()
     .toArray()
-    .map(removeUnderscore)
   // const charactersAny = Array.from(
   // new Set(characterTags.filter((char) => !charactersGroups.some(([_, chars]) => chars.includes(char))))
   // ).map(removeUnderscore)
@@ -66,11 +65,22 @@ const postToText = ({id, tag_string_artist, tag_string_character, tag_string_cop
   const fPostLink = fmt`${link(tag_string_artist || id.toString(), new URL(`/posts/${id}`, danbooruUri).toString())}`
   const fCharacters = [
     ...charactersGroups.map(formatCharacterGroup),
-    ...charactersAny.map((char) => fmt` ${link(char, toUri(char.replace(' ', '_')))}`),
+    ...charactersAny.map((char) => fmt` ${link(removeUnderscore(char), toUri(char))}`),
   ]
 
   const {text: caption, entities: caption_entities} = fmt([fPostLink, ...fCharacters])
-  return {caption, caption_entities}
+  return {
+    caption,
+    caption_entities,
+    raw: {
+      copyrights: copyrightTags,
+      characters: characterTags,
+    },
+    fmt: {
+      postLink: fPostLink,
+      characters: fCharacters,
+    },
+  }
 }
 
 const postToInlineResult = (post: DanbooruPost) => {
@@ -80,7 +90,7 @@ const postToInlineResult = (post: DanbooruPost) => {
       : post?.file_url!
 
   const id = `post-${post.id}`
-  const {caption, caption_entities} = postToText(post)
+  const {caption, caption_entities, raw, fmt} = postToText(post)
 
   if (post.file_ext === 'gif') {
     return InlineQueryResultBuilder.gif(id, uri, post.preview_file_url, {
@@ -113,12 +123,12 @@ const postToInlineResult = (post: DanbooruPost) => {
 
   // unknown post format
   if (post.file_ext) {
-    return InlineQueryResultBuilder.article(id, postLink.text + ` (${post.file_ext})`, {
-      description: characters.map((v) => v.text).join(' '),
+    return InlineQueryResultBuilder.article(id, fmt.postLink.text + ` (${post.file_ext})`, {
+      description: fmt.characters.map((v) => v.text).join(' '),
       url: new URL(`/posts/${post.id}`, danbooruUri).toString(),
       thumbnail_url: post.preview_file_url,
-    }).text(postLink.text, {
-      entities: postLink.entities,
+    }).text(fmt.postLink.text, {
+      entities: fmt.postLink.entities,
     })
   }
 }
