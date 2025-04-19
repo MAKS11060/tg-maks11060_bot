@@ -44,21 +44,18 @@ const postToText = ({id, tag_string_artist, tag_string_character, tag_string_cop
     })
     .filter(([, chars]) => chars.length) as [string, string[]][]
 
-  // Находим персонажей без копирайтов
   const charactersAny = new Set(charactersGroups.flatMap((v) => v[1]))
     .symmetricDifference(new Set(characterTags))
     .values()
     .toArray()
-  // const charactersAny = Array.from(
-  // new Set(characterTags.filter((char) => !charactersGroups.some(([_, chars]) => chars.includes(char))))
-  // ).map(removeUnderscore)
 
   const formatCharacterGroup = ([copyright, characters]: [string, string[]]) =>
     fmt([
       fmt` ${link(removeUnderscore(copyright), toUri(copyright))}(`,
-      ...characters
-        .map((char) => char.replace(`_(${copyright})`, ''))
-        .map((char, i) => fmt`${link(removeUnderscore(char), toUri(char))}${i !== characters.length - 1 ? ', ' : ''}`),
+      ...characters.map((char, i) => {
+        const text = char.replace(`_(${copyright})`, '')
+        return fmt`${link(removeUnderscore(text), toUri(char))}${i !== characters.length - 1 ? ', ' : ''}`
+      }),
       ')',
     ])
 
