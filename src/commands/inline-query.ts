@@ -74,7 +74,7 @@ const createPostFmtMessage = ({id, tag_string_artist, tag_string_character, tag_
     FormattedString.join(
       charactersAny.map((char) => FormattedString.link(removeUnderscore(char), toUri(char)), ' '),
     ),
-  ])
+  ], ' ')
 }
 
 Deno.test('Test 657483', async (t) => {
