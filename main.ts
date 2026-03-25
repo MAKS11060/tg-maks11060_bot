@@ -40,7 +40,7 @@ if (Deno.env.has('WEBHOOK_SECRET')) {
     const cert = Deno.readTextFileSync(Deno.env.get('CERT')!)
     Deno.serve({key, cert, port: 443}, handler)
   } else {
-    Deno.serve({port: 80}, handler)
+    Deno.serve(handler)
   }
 } else {
   bot.start().catch((e) => console.error('BOT Error', e))

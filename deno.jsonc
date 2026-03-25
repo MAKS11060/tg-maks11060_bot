@@ -24,7 +24,6 @@
     "quoteProps": "asNeeded",
     "semiColons": false,
     "singleQuote": true,
-    "spaceSurroundingProperties": false,
-    "newLineKind": "system",
+    "spaceSurroundingProperties": false
   },
 }
