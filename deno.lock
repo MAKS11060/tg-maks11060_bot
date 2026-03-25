@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@maks11060/web@~0.1.1": "0.1.1",
     "jsr:@std/cli@*": "1.0.27",
     "jsr:@std/fmt@^1.0.9": "1.0.9",
     "jsr:@std/ulid@1": "1.0.0",
@@ -10,6 +11,9 @@
     "npm:openapi-typescript@*": "7.12.0_typescript@5.9.3"
   },
   "jsr": {
+    "@maks11060/web@0.1.1": {
+      "integrity": "6971e4c082622acf104f28fe8b4fefe7ce5e3269f4323b31915dd3bbd407ad10"
+    },
     "@std/cli@1.0.27": {
       "integrity": "eba97edd0891871a7410e835dd94b3c260c709cca5983df2689c25a71fbe04de",
       "dependencies": [

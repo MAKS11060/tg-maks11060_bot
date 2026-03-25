@@ -77,6 +77,112 @@ const createPostFmtMessage = ({id, tag_string_artist, tag_string_character, tag_
   ])
 }
 
+Deno.test('Test 657483', async (t) => {
+  const data = {
+    'id': 11027130,
+    'created_at': '2026-03-25T20:43:42.052+02:00',
+    'uploader_id': 554505,
+    'score': 0,
+    'source': 'https://x.com/anjohink/status/1844025266898878645',
+    'md5': '5936774d9c75a918a6f1c0c6119a0c7f',
+    'last_comment_bumped_at': null,
+    'rating': 'g',
+    'image_width': 1448,
+    'image_height': 2048,
+    'tag_string':
+      '1boy alien anjohink baltan_seijin booska chibi color_timer colored_skin colorful_background commentary creator_connection dada_(ultra_series) eleking flying gomora green_background highres kaiju kaiju_booska male_focus monster multicolored_skin pigmon pink_background red_skin science_fiction serious silver_skin sparkle tokusatsu ultra_beam ultra_series yellow_background yellow_eyes',
+    'fav_count': 0,
+    'file_ext': 'jpg',
+    'last_noted_at': null,
+    'parent_id': null,
+    'has_children': false,
+    'approver_id': null,
+    'tag_count_general': 23,
+    'tag_count_artist': 1,
+    'tag_count_character': 6,
+    'tag_count_copyright': 2,
+    'file_size': 391958,
+    'up_score': 0,
+    'down_score': 0,
+    'is_pending': false,
+    'is_flagged': false,
+    'is_deleted': false,
+    'tag_count': 34,
+    'updated_at': '2026-03-25T20:43:52.867+02:00',
+    'is_banned': false,
+    'pixiv_id': null,
+    'last_commented_at': null,
+    'has_active_children': false,
+    'bit_flags': 0,
+    'tag_count_meta': 2,
+    'has_large': true,
+    'has_visible_children': false,
+    'media_asset': {
+      'id': 47173691,
+      'created_at': '2026-03-25T20:29:20.885+02:00',
+      'updated_at': '2026-03-25T20:29:22.423+02:00',
+      'md5': '5936774d9c75a918a6f1c0c6119a0c7f',
+      'file_ext': 'jpg',
+      'file_size': 391958,
+      'image_width': 1448,
+      'image_height': 2048,
+      'duration': null,
+      'status': 'active',
+      'file_key': 'Ud9YlZaJN',
+      'is_public': true,
+      'pixel_hash': '03d19ecf3d313b150ec655f7291fbf46',
+      'variants': [
+        {
+          'type': '180x180',
+          'url': 'https://cdn.donmai.us/180x180/59/36/5936774d9c75a918a6f1c0c6119a0c7f.jpg',
+          'width': 127,
+          'height': 180,
+          'file_ext': 'jpg',
+        },
+        {
+          'type': '360x360',
+          'url': 'https://cdn.donmai.us/360x360/59/36/5936774d9c75a918a6f1c0c6119a0c7f.jpg',
+          'width': 255,
+          'height': 360,
+          'file_ext': 'jpg',
+        },
+        {
+          'type': '720x720',
+          'url': 'https://cdn.donmai.us/720x720/59/36/5936774d9c75a918a6f1c0c6119a0c7f.webp',
+          'width': 509,
+          'height': 720,
+          'file_ext': 'webp',
+        },
+        {
+          'type': 'sample',
+          'url': 'https://cdn.donmai.us/sample/59/36/sample-5936774d9c75a918a6f1c0c6119a0c7f.jpg',
+          'width': 850,
+          'height': 1202,
+          'file_ext': 'jpg',
+        },
+        {
+          'type': 'original',
+          'url': 'https://cdn.donmai.us/original/59/36/5936774d9c75a918a6f1c0c6119a0c7f.jpg',
+          'width': 1448,
+          'height': 2048,
+          'file_ext': 'jpg',
+        },
+      ],
+    },
+    'tag_string_general':
+      '1boy alien chibi color_timer colored_skin colorful_background creator_connection flying green_background kaiju male_focus monster multicolored_skin pink_background red_skin science_fiction serious silver_skin sparkle tokusatsu ultra_beam yellow_background yellow_eyes',
+    'tag_string_character': 'baltan_seijin booska dada_(ultra_series) eleking gomora pigmon',
+    'tag_string_copyright': 'kaiju_booska ultra_series',
+    'tag_string_artist': 'anjohink',
+    'tag_string_meta': 'commentary highres',
+    'file_url': 'https://cdn.donmai.us/original/59/36/5936774d9c75a918a6f1c0c6119a0c7f.jpg',
+    'large_file_url': 'https://cdn.donmai.us/sample/59/36/sample-5936774d9c75a918a6f1c0c6119a0c7f.jpg',
+    'preview_file_url': 'https://cdn.donmai.us/180x180/59/36/5936774d9c75a918a6f1c0c6119a0c7f.jpg',
+  }
+
+  console.log(createPostFmtMessage(data as unknown as DanbooruPost))
+})
+
 const createPostInline = (post: DanbooruPost) => {
   const fileUrl = post.file_size >= 5242880 // 5 MiB tg limit
     ? post.large_file_url
@@ -88,14 +194,17 @@ const createPostInline = (post: DanbooruPost) => {
   if (post.file_ext === 'gif') {
     return InlineQueryResultBuilder.gif(id, fileUrl, post.preview_file_url, {
       thumbnail_mime_type: 'image/jpeg',
-      ...message,
+      caption: message.caption,
+      caption_entities: message.caption_entities,
+      // ...message,
     })
   }
 
   if (post.file_ext === 'jpg' || post.file_ext === 'png') {
     return InlineQueryResultBuilder.photo(id, fileUrl, {
       thumbnail_url: post.preview_file_url,
-      ...message,
+      caption: message.caption,
+      caption_entities: message.caption_entities,
     })
   }
 
@@ -106,7 +215,7 @@ const createPostInline = (post: DanbooruPost) => {
       'Video',
       post.file_url,
       post.preview_file_url,
-      message,
+      {caption: message.caption, caption_entities: message.caption_entities},
     )
   }
 
@@ -292,7 +401,7 @@ bot.on('inline_query', async (c) => {
     fetch: fetchDanbooru.fetch,
     params: {
       query: {
-        tags: danbooruTagsBuilder() //
+        tags: danbooruTagsBuilder()
           .tag('user:maks11060')
           .tag('status:banned', true)
           .toString(),
