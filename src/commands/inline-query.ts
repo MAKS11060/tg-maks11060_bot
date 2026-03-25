@@ -55,7 +55,7 @@ const createPostFmtMessage = ({id, tag_string_artist, tag_string_character, tag_
     .toArray()
 
   const formatCharacterGroup = ([copyright, characters]: [string, string[]]) => {
-    FormattedString.link(removeUnderscore(copyright), toUri(copyright))
+    return FormattedString.link(removeUnderscore(copyright), toUri(copyright))
       .plain('(')
       .concat(
         FormattedString.join(
@@ -66,8 +66,6 @@ const createPostFmtMessage = ({id, tag_string_artist, tag_string_character, tag_
         ),
       )
       .plain(')')
-
-    return FormattedString
   }
 
   return FormattedString.join([
