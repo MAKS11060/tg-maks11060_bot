@@ -4,13 +4,10 @@
 
 ### Commands
 
-| Command     | Description                                                                      |
-| ----------- | -------------------------------------------------------------------------------- |
-| `/help`     | Print help                                                                       |
-| `/menu`     | Show inline commands                                                             |
-|             |                                                                                  |
-| `/warp`     | Generate config for [Amnezia VPN](https://github.com/amnezia-vpn/amnezia-client) |
-| `/warp_alt` | Generate a config with alternative parameters                                    |
+| Command | Description          |
+| ------- | -------------------- |
+| `/help` | Print help           |
+| `/menu` | Show inline commands |
 
 ### Inline commands
 

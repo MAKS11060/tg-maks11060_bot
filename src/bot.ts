@@ -1,13 +1,11 @@
 import {fmt} from '@grammyjs/parse-mode'
 import {Bot, GrammyError, HttpError, InlineKeyboard} from 'grammy'
 import {inline_query} from './commands/inline-query.ts'
-import {warp} from './commands/warp.ts'
 import {tgBotLink_tme, tgBotNameMD, tgBotOwner} from './config.ts'
 
 export const bot = new Bot(Deno.env.get('BOT_TOKEN')!)
 
 bot.use(inline_query)
-bot.use(warp) // warp config generator
 
 bot.catch((err) => {
   const ctx = err.ctx
@@ -54,11 +52,7 @@ bot.command('help', async (c) => {
 
 *Commands*
 /help \\- Print help
-/menu \\- Show inline commands
-
-*[Amnezia VPN](https://github.com/amnezia-vpn/amnezia-client)*
-/warp \\- Generate config for Amnezia VPN
-/warp\\_alt \\- Generate a config with alternative parameters`
+/menu \\- Show inline commands`
 
   await c.deleteMessage()
   return await c.reply(text.text, {
@@ -106,7 +100,6 @@ bot.command('upd', async (c) => {
       {command: 'start', description: 'Print hello'},
       {command: 'help', description: 'Show help'},
       {command: 'menu', description: 'Show inline commands'},
-      {command: 'warp', description: 'Generate warp config'},
       // {command: 'art', description: 'Get anime art'},
     ])
   }

@@ -1,32 +1,30 @@
 {
-  "lock": false,
   "tasks": {
-    "dev": "deno run -A --watch-hmr main.ts",
-    "devr": "deno run -Ar --watch-hmr main.ts",
-    "start": "deno run -A main.ts",
-    "deploy:ls": "deployctl deployments list",
-    "deploy:del:prev": "deployctl deployments delete --prev",
-  },
-  "unstable": [
-    "kv"
-  ],
-  "deploy": {
-    "project": "7a541b4d-000d-423a-88fd-74baeba183a6",
-    "exclude": [
-      ".git",
-      "**/node_modules"
-    ],
-    "include": [],
-    "entrypoint": "main.ts"
+    "fmt": "dprint fmt",
+    "dev": "deno run -A --env-file --watch-hmr main.ts",
+    "start": "deno run -A --env-file main.ts",
+    "openapi:danbooru": "deno run -A npm:openapi-typescript https://github.com/MAKS11060/openapi/releases/latest/download/danbooru.openapi.yaml -o ./src/lib/danbooru/danbooru.oas.ts",
   },
   "imports": {
-    "@grammyjs/parse-mode": "npm:@grammyjs/parse-mode@^1.11.1",
-    "@maks11060/crypto": "jsr:@maks11060/crypto@^0.3.0",
-    "@maks11060/web": "jsr:@maks11060/web@^0.0.3",
-    "@std/encoding": "jsr:@std/encoding@^1.0.6",
+    "@grammyjs/parse-mode": "npm:@grammyjs/parse-mode@^2.3.0",
+    "@maks11060/crypto": "jsr:@maks11060/crypto@^0.5.1",
+    "@maks11060/web": "jsr:@maks11060/web@^0.1.1",
     "@std/ulid": "jsr:@std/ulid@^1.0.0",
-    "grammy": "npm:grammy@^1.34.0",
-    "openapi-fetch": "npm:openapi-fetch@^0.13.4",
-    "danbooru": "https://raw.githubusercontent.com/MAKS11060/deno-libs/refs/heads/main/lib/danbooru-tags.ts?t=4"
-  }
+    "grammy": "npm:grammy@^1.41.1",
+    "openapi-fetch": "npm:openapi-fetch@^0.17.0",
+  },
+  "unstable": [
+    "kv",
+  ],
+  "fmt": {
+    "exclude": [
+      "**/*.oas.ts",
+    ],
+    "lineWidth": 120,
+    "quoteProps": "asNeeded",
+    "semiColons": false,
+    "singleQuote": true,
+    "spaceSurroundingProperties": false,
+    "newLineKind": "system",
+  },
 }

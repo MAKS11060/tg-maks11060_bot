@@ -1,12 +1,11 @@
-import {encodeBase64} from '@std/encoding/base64'
 import createClient from 'openapi-fetch'
-import type {components, paths} from './danbooru.d.ts'
+import type {components, paths} from './danbooru.oas.ts'
 
-export type DanbooruPost = components['schemas']['Post']
+export type DanbooruPost = components['schemas']['post']
 
 const login = Deno.env.get('DANBOOURU_LOGIN')
 const apiKey = Deno.env.get('DANBOOURU_APIKEY')
-const authorization = encodeBase64(`${login}:${apiKey}`)
+const authorization = new TextEncoder().encode(`${login}:${apiKey}`).toBase64()
 
 export const danbooruUri = new URL('https://danbooru.donmai.us')
 export const danbooruApi = createClient<paths>({

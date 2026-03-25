@@ -1,7 +1,7 @@
 #!/usr/bin/env -S deno run -A --env-file
 
 import {Bot} from 'grammy'
-import {promptSelect} from 'https://raw.githubusercontent.com/MAKS11060/deno-libs/main/cli/prompt.ts'
+import {promptSelect} from 'jsr:@std/cli/unstable-prompt-select'
 
 const getEnv = (key: string): string => {
   if (Deno.env.has(key)) return Deno.env.get(key)!
@@ -21,11 +21,13 @@ while (true) {
   }
 
   if (mode === 'Set webhook') {
-    const host = promptSelect('Webhook target', ['local', 'remote'])
+    const hosts = ['local', 'remote'] as const
+    const host = promptSelect('Webhook target', hosts as unknown as string[]) as typeof hosts[number]
     const target: Record<typeof host, string> = {
       local: getEnv('WEBHOOK_URI_LOCAL'),
       remote: getEnv('WEBHOOK_URI'),
     }
+    if (!host) throw new Error('Invalid host target')
     const status = await bot.api.setWebhook(target[host], {
       secret_token: getEnv('WEBHOOK_SECRET'),
     })

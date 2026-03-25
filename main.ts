@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run -A --watch-hmr --env-file
+#!/usr/bin/env -S deno run -A --env-file --watch-hmr
 
 import {GrammyError, webhookCallback} from 'grammy'
 import {bot} from './src/bot.ts'
@@ -17,7 +17,7 @@ if (Deno.env.has('WEBHOOK_SECRET')) {
         console.log(
           `${req.method} %c${req.url} %c${(performance.now() - start).toFixed(3)} ms`,
           'color: green;',
-          'color: blue;'
+          'color: blue;',
         )
         return res
       } catch (e) {
@@ -25,7 +25,7 @@ if (Deno.env.has('WEBHOOK_SECRET')) {
           console.error(e.name, e.description, e.message, e.parameters)
           console.error(e.payload)
         } else if (e instanceof Error) {
-          console.error('%cERR','color: red', e)
+          console.error('%cERR', 'color: red', e)
         }
         // return Response.error()
         return Response.json({ok: false}, {status: 400})

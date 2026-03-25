@@ -1,12 +1,12 @@
-import {fmt, link} from '@grammyjs/parse-mode'
-import {createCachedFetch} from '@maks11060/web'
-import {danbooruTagsBuilder} from 'danbooru'
+import {FormattedString} from '@grammyjs/parse-mode'
+import {Fetch, fetchCache} from '@maks11060/web/fetch'
 import {Composer, InlineKeyboard, InlineQueryResultBuilder} from 'grammy'
 import {isDev} from '../config.ts'
 import {danbooruApi, DanbooruPost, danbooruUri} from '../lib/danbooru/danbooru.ts'
+import {danbooruTagsBuilder} from '../lib/danbooru/tags.ts'
 
 const bot = new Composer()
-export {bot as inline_query}
+export { bot as inline_query }
 
 const only = [
   'id',
@@ -20,13 +20,16 @@ const only = [
   'tag_string_character',
 ].join(',')
 
-const fetchDanbooru = await createCachedFetch({
-  name: 'danbooru',
-  ttl: 60 * 30, // 30 min
-  log: isDev,
-})
+const fetchDanbooru = Fetch()
+  .use(
+    await fetchCache({
+      name: 'danbooru',
+      ttl: 60 * 30, // 30 min
+      log: isDev,
+    }),
+  )
 
-const postToText = ({id, tag_string_artist, tag_string_character, tag_string_copyright}: DanbooruPost) => {
+const createPostFmtMessage = ({id, tag_string_artist, tag_string_character, tag_string_copyright}: DanbooruPost) => {
   const removeUnderscore = (v: string) => v.replaceAll('_', ' ').trim()
   const toUri = (tags: string) => {
     const uri = new URL('/posts', danbooruUri)
@@ -34,14 +37,16 @@ const postToText = ({id, tag_string_artist, tag_string_character, tag_string_cop
     return uri.toString()
   }
 
+  const postLink = FormattedString.link(`${tag_string_artist || id}`, new URL(`/posts/${1}`, danbooruUri).toString())
+
   const copyrightTags = tag_string_copyright?.split(' ') || []
   const characterTags = tag_string_character?.split(' ') || []
 
   const charactersGroups = copyrightTags
-    .map((copyright) => {
-      const chars = characterTags.filter((char) => char.endsWith(`_(${copyright})`))
-      return [copyright, chars]
-    })
+    .map((copyright) => [
+      copyright,
+      characterTags.filter((char) => char.endsWith(`_(${copyright})`)),
+    ])
     .filter(([, chars]) => chars.length) as [string, string[]][]
 
   const charactersAny = new Set(charactersGroups.flatMap((v) => v[1]))
@@ -49,69 +54,62 @@ const postToText = ({id, tag_string_artist, tag_string_character, tag_string_cop
     .values()
     .toArray()
 
-  const formatCharacterGroup = ([copyright, characters]: [string, string[]]) =>
-    fmt([
-      fmt` ${link(removeUnderscore(copyright), toUri(copyright))}(`,
-      ...characters.map((char, i) => {
-        const text = char.replace(`_(${copyright})`, '')
-        return fmt`${link(removeUnderscore(text), toUri(char))}${i !== characters.length - 1 ? ', ' : ''}`
-      }),
-      ')',
-    ])
+  const formatCharacterGroup = ([copyright, characters]: [string, string[]]) => {
+    FormattedString.link(removeUnderscore(copyright), toUri(copyright))
+      .plain('(')
+      .concat(
+        FormattedString.join(
+          characters.map((char) =>
+            FormattedString.link(removeUnderscore(char.replace(`_${copyright}`, '')), toUri(char))
+          ),
+          ', ',
+        ),
+      )
+      .plain(')')
 
-  const fPostLink = fmt`${link(tag_string_artist || id.toString(), new URL(`/posts/${id}`, danbooruUri).toString())}`
-  const fCharacters = [
-    ...charactersGroups.map(formatCharacterGroup),
-    ...charactersAny.map((char) => fmt` ${link(removeUnderscore(char), toUri(char))}`),
-  ]
-
-  const {text: caption, entities: caption_entities} = fmt([fPostLink, ...fCharacters])
-  return {
-    caption,
-    caption_entities,
-    raw: {
-      copyrights: copyrightTags,
-      characters: characterTags,
-    },
-    fmt: {
-      postLink: fPostLink,
-      characters: fCharacters,
-    },
+    return FormattedString
   }
+
+  return FormattedString.join([
+    postLink,
+    ...charactersGroups.map(formatCharacterGroup),
+    FormattedString.join(
+      charactersAny.map((char) => FormattedString.link(removeUnderscore(char), toUri(char)), ' '),
+    ),
+  ])
 }
 
-const postToInlineResult = (post: DanbooruPost) => {
-  const uri =
-    post.file_size >= 5242880 // 5 MiB tg limit
-      ? post.large_file_url
-      : post?.file_url!
+const createPostInline = (post: DanbooruPost) => {
+  const fileUrl = post.file_size >= 5242880 // 5 MiB tg limit
+    ? post.large_file_url
+    : post?.file_url!
 
   const id = `post-${post.id}`
-  const {caption, caption_entities, raw, fmt} = postToText(post)
+  const message = createPostFmtMessage(post)
 
   if (post.file_ext === 'gif') {
-    return InlineQueryResultBuilder.gif(id, uri, post.preview_file_url, {
+    return InlineQueryResultBuilder.gif(id, fileUrl, post.preview_file_url, {
       thumbnail_mime_type: 'image/jpeg',
-      caption,
-      caption_entities,
-      title: 'Title',
+      ...message,
     })
   }
 
   if (post.file_ext === 'jpg' || post.file_ext === 'png') {
-    return InlineQueryResultBuilder.photo(id, uri, {
+    return InlineQueryResultBuilder.photo(id, fileUrl, {
       thumbnail_url: post.preview_file_url,
-      caption,
-      caption_entities,
+      ...message,
     })
   }
 
   // TODO: test video/webm/mp4
   if (post.file_ext === 'mp4') {
-    return InlineQueryResultBuilder.videoMp4(id, 'Video', post.file_url, post.preview_file_url, {
-      caption,
-      caption_entities,
-    })
+    return InlineQueryResultBuilder.videoMp4(
+      id,
+      'Video',
+      post.file_url,
+      post.preview_file_url,
+      message,
+    )
   }
 
   if (post.file_ext === 'webm') {
@@ -120,38 +118,42 @@ const postToInlineResult = (post: DanbooruPost) => {
 
   // unknown post format
   if (post.file_ext) {
-    return InlineQueryResultBuilder.article(id, fmt.postLink.text + ` (${post.file_ext})`, {
-      description: fmt.characters.map((v) => v.text).join(' '),
-      url: new URL(`/posts/${post.id}`, danbooruUri).toString(),
-      thumbnail_url: post.preview_file_url,
-    }).text(fmt.postLink.text, {
-      entities: fmt.postLink.entities,
-    })
+    return
+    // return InlineQueryResultBuilder.article(
+    //   id,
+    //   fmt.postLink.text + ` (${post.file_ext})`,
+    //   {
+    //     description: fmt.characters.map((v) => v.text).join(' '),
+    //     url: new URL(`/posts/${post.id}`, danbooruUri).toString(),
+    //     thumbnail_url: post.preview_file_url,
+    //   },
+    // ).text(fmt.postLink.text, {
+    //   entities: fmt.postLink.entities,
+    // })
   }
 }
 
 // @bot id 1 2 123
-bot.inlineQuery(/^id\s+(?<numbers>(?:\d+\s*){1,10})/, async (c, next) => {
+bot.inlineQuery(/^id\s+(?<numbers>(?:\d+\s*){1,11})/, async (c, next) => {
   const match = c.match as RegExpMatchArray
   if (match && match.groups) {
     const ids = match.groups.numbers.split(/\s+/).map(Number)
     const posts = await Promise.all(
       ids.map(async (id) => {
-        const post = await danbooruApi
+        const {data} = await danbooruApi
           .GET('/posts/{id}.json', {
             params: {path: {id}},
-            fetch: fetchDanbooru,
+            fetch: fetchDanbooru.fetch,
           })
-          .then((v) => v.data)
 
-        if (post) return postToInlineResult(post)
-      })
+        if (data) return createPostInline(data)
+      }),
     )
 
     return await c
       .answerInlineQuery(posts.filter(Boolean) as [], {
         is_personal: true,
-        cache_time: 10,
+        cache_time: 6,
       })
       .catch((e) => {
         console.error('Answer Err', e)
@@ -197,7 +199,8 @@ bot.inlineQuery(/^id\s+(?<numbers>(?:\d+\s*){1,10})/, async (c, next) => {
 bot.inlineQuery(/^fav(orite.?)?$/i, async (c, next) => {
   const offset = parseInt(c.inlineQuery.offset) || 1
   const {data: posts} = await danbooruApi.GET('/posts.json', {
-    fetch: fetchDanbooru,
+    fetch: fetchDanbooru.fetch,
+
     params: {
       query: {
         tags: danbooruTagsBuilder() //
@@ -213,16 +216,19 @@ bot.inlineQuery(/^fav(orite.?)?$/i, async (c, next) => {
 
   if (!posts) return await next()
 
-  return await c.answerInlineQuery(posts?.map(postToInlineResult).filter(Boolean) as [], {
-    next_offset: `${offset + 1}`,
-  })
+  return await c.answerInlineQuery(
+    posts?.map(createPostInline).filter(Boolean) as [],
+    {
+      next_offset: `${offset + 1}`,
+    },
+  )
 })
 
 bot.inlineQuery(/hot/i, async (c, next) => {
   const offset = parseInt(c.inlineQuery.offset) || 1
 
   const {data: posts} = await danbooruApi.GET('/posts.json', {
-    fetch: fetchDanbooru,
+    fetch: fetchDanbooru.fetch,
     params: {
       query: {
         tags: danbooruTagsBuilder() //
@@ -240,7 +246,7 @@ bot.inlineQuery(/hot/i, async (c, next) => {
   if (!posts) return await next()
 
   return await c
-    .answerInlineQuery(posts?.map(postToInlineResult).filter(Boolean) as [], {
+    .answerInlineQuery(posts?.map(createPostInline).filter(Boolean) as [], {
       // cache_time: 30,
       is_personal: true,
       next_offset: `${offset + 1}`,
@@ -255,7 +261,7 @@ bot.inlineQuery(/hot/i, async (c, next) => {
 bot.inlineQuery(/^s(ave[s|d]?)?$/i, async (c, next) => {
   const offset = parseInt(c.inlineQuery.offset) || 1
   const {data: posts} = await danbooruApi.GET('/posts.json', {
-    fetch: fetchDanbooru,
+    fetch: fetchDanbooru.fetch,
     params: {
       query: {
         tags: danbooruTagsBuilder() //
@@ -271,10 +277,13 @@ bot.inlineQuery(/^s(ave[s|d]?)?$/i, async (c, next) => {
 
   if (!posts) return await next()
 
-  return await c.answerInlineQuery(posts?.map(postToInlineResult).filter(Boolean) as [], {
-    cache_time: 60,
-    next_offset: `${offset + 1}`,
-  })
+  return await c.answerInlineQuery(
+    posts?.map(createPostInline).filter(Boolean) as [],
+    {
+      cache_time: 60,
+      next_offset: `${offset + 1}`,
+    },
+  )
 })
 
 bot.on('inline_query', async (c) => {
@@ -282,7 +291,7 @@ bot.on('inline_query', async (c) => {
 
   const offset = parseInt(c.inlineQuery.offset) || 1
   const {data: posts} = await danbooruApi.GET('/posts.json', {
-    fetch: fetchDanbooru,
+    fetch: fetchDanbooru.fetch,
     params: {
       query: {
         tags: danbooruTagsBuilder() //
@@ -305,11 +314,11 @@ bot.on('inline_query', async (c) => {
           .switchInlineCurrent('Saved', 'saved')
           .toTransposed(),
       }).text('Search help'),
-      ...(posts?.map(postToInlineResult).filter(Boolean) as []),
+      ...(posts?.map(createPostInline).filter(Boolean) as []),
     ],
     {
       is_personal: true,
       cache_time: 15,
-    }
+    },
   )
 })
