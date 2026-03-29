@@ -71,9 +71,7 @@ const createPostFmtMessage = ({id, tag_string_artist, tag_string_character, tag_
   return FormattedString.join([
     postLink,
     ...charactersGroups.map(formatCharacterGroup),
-    FormattedString.join(
-      charactersAny.map((char) => FormattedString.link(removeUnderscore(char), toUri(char)), ' '),
-    ),
+    ...charactersAny.map((char) => FormattedString.link(removeUnderscore(char), toUri(char))),
   ], ' ')
 }
 
