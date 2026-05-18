@@ -6,7 +6,6 @@ const bot = new Bot(Deno.env.get('BOT_TOKEN')!)
 const me = await bot.api.getMe()
 
 const envData = `# .env
-BOT_LINK=${me.username}
-BOT_NAME="${me.first_name}"`
+BOT_INFO='${JSON.stringify(me)}'`
 
 console.log(envData)

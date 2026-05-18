@@ -3,14 +3,11 @@ import type {components, paths} from './danbooru.oas.ts'
 
 export type DanbooruPost = components['schemas']['post']
 
-const login = Deno.env.get('DANBOOURU_LOGIN')
-const apiKey = Deno.env.get('DANBOOURU_APIKEY')
-const authorization = new TextEncoder().encode(`${login}:${apiKey}`).toBase64()
 
 export const danbooruUri = new URL('https://danbooru.donmai.us')
 export const danbooruApi = createClient<paths>({
   baseUrl: danbooruUri.toString(),
-  headers: {authorization},
+  // headers: {authorization},
 })
 
 export const getPost = async (id: number) => {

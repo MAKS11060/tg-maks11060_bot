@@ -2,6 +2,6 @@
   "editor.defaultFormatter": "dprint.dprint",
 
   "explorer.fileNesting.patterns": {
-    "deno.json*": ".*, dprint.*, *.lock"
+    "package.json": ".*, *.json, *.jsonc, *.yaml"
   }
 }
