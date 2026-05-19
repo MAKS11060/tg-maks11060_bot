@@ -28,7 +28,7 @@ app.command('help', async (c) => {
       is_disabled: true,
     },
     reply_markup: new InlineKeyboard()
-      .text('Remove', 'self-delete'),
+      .text('Remove', CALLBACK_QUERY_TYPE.selfDelete),
   })
 })
 
@@ -37,7 +37,7 @@ app.command('developer_info', async (c) => {
   return c.reply('Developer Info', {
     protect_content: true,
     reply_markup: new InlineKeyboard()
-      .text('Remove', 'self-delete')
+      .text('Remove', CALLBACK_QUERY_TYPE.selfDelete)
       .url('GitHub', 'https://github.com/maks11060')
       .url('Bot Repo', 'https://github.com/maks11060/tg-maks11060_bot'),
   })
@@ -48,7 +48,7 @@ app.command('menu', async (c) => {
   const defaultInlineMenu = new InlineKeyboard()
     .switchInlineCurrent('Hot', 'hot')
     .switchInlineCurrent('Fav', 'fav')
-    .text('Remove', 'self-delete')
+    .text('Remove', CALLBACK_QUERY_TYPE.selfDelete)
     .toTransposed()
     .switchInlineCurrent('Saved', 'saved')
 
@@ -152,7 +152,7 @@ app.inlineQuery(/(h|hot)/i, async (c, next) => {
   const {data: posts} = await danbooruApi.GET('/posts.json', {
     params: {
       query: {
-        tags: danbooruTagsBuilder() //
+        tags: danbooruTagsBuilder()
           .order('rank')
           .rating(['e', 'q'], true)
           .tag('parent:none')
@@ -186,7 +186,7 @@ app.inlineQuery(/^s(ave[s|d]?)?$/i, async (c, next) => {
     headers: {authorization: basicAuth(c.env.DANBOORU_LOGIN, c.env.DANBOORU_APIKEY)},
     params: {
       query: {
-        tags: danbooruTagsBuilder() //
+        tags: danbooruTagsBuilder()
           .tag('search:all')
           .tag('parent:none')
           .toString(),
