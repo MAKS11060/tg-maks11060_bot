@@ -12,13 +12,12 @@
     "dev:bun": "bun --hot main.ts",
     "dev:workerd": "wrangler dev",
     "dev:workerd:https": "wrangler dev --local-protocol https --ip 0.0.0.0 --port 443",
-
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "cf-typegen": "wrangler types",
     "openapi:danbooru": "deno run -A npm:openapi-typescript https://github.com/MAKS11060/openapi/releases/latest/download/danbooru.openapi.yaml -o ./src/lib/danbooru/danbooru.oas.ts"
   },
-  "packageManager": "pnpm@11.1.2",
+  "packageManager": "pnpm@11.1.3",
   "imports": {
     "#serve": {
       "bun": "./src/runtime/bun.ts",
@@ -31,14 +30,14 @@
   "dependencies": {
     "@grammyjs/parse-mode": "^2.3.0",
     "@maks11060/web": "jsr:^0.1.1",
-    "grammy": "^1.42.0",
+    "grammy": "^1.43.0",
     "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
     "@hono/node-server": "^2.0.2",
     "@std/cli": "jsr:^1.0.29",
     "@types/bun": "^1.3.14",
-    "@types/deno": "^2.5.0",
+    "@types/deno": "^2.7.0",
     "@types/node": "^25.8.0",
     "@typescript/native-preview": "7.0.0-dev.20260515.1",
     "typescript": "^6.0.3",
