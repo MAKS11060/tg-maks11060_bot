@@ -1,6 +1,15 @@
+import {danbooruApi} from '#lib/danbooru/danbooru.ts'
 import {HTTPError} from '#lib/openapi-fetch.ts'
 import {Bot, GrammyError, webhookCallback} from 'grammy'
 import {app} from './src/grammy/app.ts'
+
+danbooruApi.use({
+  onResponse({request, response}) {
+    if (!response.ok) {
+      console.error(request, request)
+    }
+  },
+})
 
 export default {
   async fetch(request, env, ctx): Promise<Response> {
