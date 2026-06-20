@@ -2,6 +2,7 @@ import {danbooruApi} from '#lib/danbooru/danbooru.ts'
 import {danbooruTagsBuilder} from '#lib/danbooru/tags.ts'
 import {createPostInline} from '#lib/helper/danbooru.ts'
 import {getBotLink_tme} from '#lib/helper/telegram.ts'
+import {parseResponse} from '#lib/openapi-fetch.ts'
 import {basicAuth} from '#lib/utils.ts'
 import {fmt} from '@grammyjs/parse-mode'
 import {Composer, InlineKeyboard, InlineQueryResultBuilder} from 'grammy'
@@ -93,7 +94,7 @@ app.inlineQuery(/^(?:i|id|post)\s+(?<numbers>(?:\d+\s*){1,12})$/i, async (c, nex
   const match = c.match as RegExpMatchArray
   const ids = new Set(match.groups?.numbers?.split(/\s+/).map(Number))
 
-  const {response, data} = await danbooruApi.GET('/posts.json', {
+  const {data} = await parseResponse(danbooruApi.GET('/posts.json', {
     params: {
       query: {
         limit: 50,
@@ -101,9 +102,9 @@ app.inlineQuery(/^(?:i|id|post)\s+(?<numbers>(?:\d+\s*){1,12})$/i, async (c, nex
         tags: `id:${ids.values().toArray().join(',')}`,
       },
     },
-  })
+  }))
 
-  if (response.ok && data?.length) {
+  if (data?.length) {
     return await c.answerInlineQuery(
       data
         ?.filter((v) => v.id && v.file_url)
@@ -123,7 +124,7 @@ app.inlineQuery(/^(?<command>fav|like|f)(?:\s+(?<username>[\w-]+))?\s*$/i, async
   const limit = 50
   const page = parseInt(c.inlineQuery.offset) || 1
 
-  const {data: posts} = await danbooruApi.GET('/posts.json', {
+  const {data: posts} = await parseResponse(danbooruApi.GET('/posts.json', {
     params: {
       query: {
         tags: danbooruTagsBuilder()
@@ -135,7 +136,7 @@ app.inlineQuery(/^(?<command>fav|like|f)(?:\s+(?<username>[\w-]+))?\s*$/i, async
         page,
       },
     },
-  })
+  }))
 
   if (!posts?.length) return await next()
 
@@ -149,7 +150,7 @@ app.inlineQuery(/(h|hot)/i, async (c, next) => {
   const limit = 50
   const page = parseInt(c.inlineQuery.offset) || 1
 
-  const {data: posts} = await danbooruApi.GET('/posts.json', {
+  const {data: posts} = await parseResponse(danbooruApi.GET('/posts.json', {
     params: {
       query: {
         tags: danbooruTagsBuilder()
@@ -163,7 +164,7 @@ app.inlineQuery(/(h|hot)/i, async (c, next) => {
         page,
       },
     },
-  })
+  }))
   if (!posts?.length) return await next()
 
   return await c.answerInlineQuery(
@@ -182,7 +183,7 @@ app.inlineQuery(/^s(ave[s|d]?)?$/i, async (c, next) => {
   const limit = 50
   const page = parseInt(c.inlineQuery.offset) || 1
 
-  const {data: posts} = await danbooruApi.GET('/posts.json', {
+  const {data: posts} = await parseResponse(danbooruApi.GET('/posts.json', {
     headers: {authorization: basicAuth(c.env.DANBOORU_LOGIN, c.env.DANBOORU_APIKEY)},
     params: {
       query: {
@@ -195,7 +196,7 @@ app.inlineQuery(/^s(ave[s|d]?)?$/i, async (c, next) => {
         only,
       },
     },
-  })
+  }))
 
   if (!posts) return await next()
 

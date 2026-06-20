@@ -1,3 +1,4 @@
+import {HTTPError} from '#lib/openapi-fetch.ts'
 import {Bot, GrammyError, webhookCallback} from 'grammy'
 import {app} from './src/grammy/app.ts'
 import type {AppCtx} from './src/grammy/constants.ts'
@@ -24,6 +25,8 @@ export default {
         if (e instanceof GrammyError) {
           console.error(e.name, e.description, e.message, e.parameters)
           console.error(e.payload)
+        } else if (e instanceof HTTPError) {
+          console.error(e)
         } else if (e instanceof Error) {
           console.error('%cERR', 'color: red', e)
         }
