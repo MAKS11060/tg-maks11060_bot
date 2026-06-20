@@ -5,6 +5,7 @@ import {getBotLink_tme} from '#lib/helper/telegram.ts'
 import {parseResponse} from '#lib/openapi-fetch.ts'
 import {basicAuth} from '#lib/utils.ts'
 import {fmt} from '@grammyjs/parse-mode'
+import {env} from 'cloudflare:workers'
 import {Composer, InlineKeyboard, InlineQueryResultBuilder} from 'grammy'
 import {type AppCtx, CALLBACK_QUERY_TYPE} from './constants.ts'
 
@@ -184,7 +185,12 @@ app.inlineQuery(/^s(ave[s|d]?)?$/i, async (c, next) => {
   const page = parseInt(c.inlineQuery.offset) || 1
 
   const {data: posts} = await parseResponse(danbooruApi.GET('/posts.json', {
-    headers: {authorization: basicAuth(c.env.DANBOORU_LOGIN, c.env.DANBOORU_APIKEY)},
+    headers: {
+      authorization: basicAuth({
+        username: env.DANBOORU_LOGIN,
+        password: env.DANBOORU_APIKEY,
+      }),
+    },
     params: {
       query: {
         tags: danbooruTagsBuilder()

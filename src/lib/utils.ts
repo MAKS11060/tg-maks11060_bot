@@ -1,5 +1,5 @@
 const encoder = new TextEncoder()
 
-export const basicAuth = (username: string, password: string) => {
-  return encoder.encode(`${username}:${password}`).toBase64()
+export const basicAuth = (cred: {username: string; password: string}) => {
+  return 'Basic' + encoder.encode(`${cred.username}:${cred.password}`).toBase64()
 }

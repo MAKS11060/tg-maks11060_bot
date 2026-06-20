@@ -1,6 +1,8 @@
 {
   "editor.defaultFormatter": "dprint.dprint",
 
+  "js/ts.referencesCodeLens.enabled": true,
+
   "explorer.fileNesting.patterns": {
     "package.json": ".*, *.json, *.jsonc, *.yaml"
   }
