@@ -7,9 +7,9 @@ import {basicAuth} from '#lib/utils.ts'
 import {fmt} from '@grammyjs/parse-mode'
 import {env} from 'cloudflare:workers'
 import {Composer, InlineKeyboard, InlineQueryResultBuilder} from 'grammy'
-import {type AppCtx, CALLBACK_QUERY_TYPE} from './constants.ts'
+import {CALLBACK_QUERY_TYPE} from './constants.ts'
 
-export const app = new Composer<AppCtx>()
+export const app = new Composer()
 
 app.command('start', async (c) => {
   await c.reply(`Hello ${c.chat.username ?? c.chat.first_name ?? c.chat.id}`)

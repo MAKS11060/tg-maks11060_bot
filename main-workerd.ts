@@ -1,8 +1,6 @@
 import {HTTPError} from '#lib/openapi-fetch.ts'
 import {Bot, GrammyError, webhookCallback} from 'grammy'
 import {app} from './src/grammy/app.ts'
-import type {AppCtx} from './src/grammy/constants.ts'
-import {setEnv} from './src/grammy/middleware.ts'
 
 export default {
   async fetch(request, env, ctx): Promise<Response> {
@@ -10,9 +8,8 @@ export default {
 
     // Grammy route
     if (request.method === 'POST' && uri.pathname === '/tg/webhook') {
-      const bot = new Bot<AppCtx>(env.BOT_TOKEN, {botInfo: JSON.parse(env.BOT_INFO)})
+      const bot = new Bot(env.BOT_TOKEN, {botInfo: JSON.parse(env.BOT_INFO)})
 
-      bot.use(setEnv(env))
       bot.use(app)
 
       const grammyHandler = webhookCallback(bot, 'cloudflare-mod', {

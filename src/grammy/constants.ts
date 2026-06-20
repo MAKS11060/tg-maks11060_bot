@@ -1,7 +1,3 @@
-import type {Context} from 'grammy'
-
-export type AppCtx = Context & {env: Env}
-
 /** `5 MiB` tg limit */
 export const MAX_PICTURE_SIZE = 5242880
 

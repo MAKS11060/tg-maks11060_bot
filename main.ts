@@ -3,12 +3,9 @@
 import {serve} from '#serve'
 import {Bot, GrammyError, webhookCallback} from 'grammy'
 import {app} from './src/grammy/app.ts'
-import type {AppCtx} from './src/grammy/constants.ts'
-import {setEnv} from './src/grammy/middleware.ts'
 
-const bot = new Bot<AppCtx>(process.env.BOT_TOKEN!, {botInfo: JSON.parse(process.env.BOT_INFO!)})
+const bot = new Bot(process.env.BOT_TOKEN!, {botInfo: JSON.parse(process.env.BOT_INFO!)})
 
-bot.use(setEnv(process.env as any as Env))
 bot.use(app)
 
 const grammyHandler = webhookCallback(bot, 'std/http', {
