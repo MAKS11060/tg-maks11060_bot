@@ -6,7 +6,9 @@ import {app} from './src/grammy/app.ts'
 danbooruApi.use({
   onResponse({request, response}) {
     if (!response.ok) {
-      console.error(request.headers)
+      for (const header of request.headers) {
+        console.error(header)
+      }
     }
   },
 })
