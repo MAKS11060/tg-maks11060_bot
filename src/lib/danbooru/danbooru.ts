@@ -1,10 +1,11 @@
 import {env} from 'cloudflare:workers'
 import createClient from 'openapi-fetch'
-import {danbooruUri, userAgent} from '../../config/global.ts'
+import {userAgent} from '../../config/global.ts'
 import type {components, paths} from './danbooru.oas.ts'
 
 export type DanbooruPost = components['schemas']['post']
 
+export const danbooruUri = env.DANBOORU_URL || 'https://danbooru.donmai.us'
 export const danbooruApi = createClient<paths>({
   baseUrl: danbooruUri,
   headers: {

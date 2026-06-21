@@ -1,7 +1,7 @@
 import {FormattedString} from '@grammyjs/parse-mode'
 import {InlineQueryResultBuilder} from 'grammy'
-import {type DanbooruPost, danbooruUri} from '../danbooru/danbooru.ts'
 import {MAX_PICTURE_SIZE} from '../../grammy/constants.ts'
+import {type DanbooruPost, danbooruUri} from '../danbooru/danbooru.ts'
 
 export const createPostFmtMessage = (
   {id, tag_string_artist, tag_string_character, tag_string_copyright}: DanbooruPost,

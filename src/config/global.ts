@@ -2,5 +2,4 @@ import {env} from 'cloudflare:workers'
 
 export const userAgent = env.DANBOORU_USER_AGENT || 'github.com/MAKS11060/tg-maks11060_bot'
 
-export const danbooruUri = env.DANBOORU_URL || 'https://danbooru.donmai.us'
 export const danbooruProxy = env.DANBOORU_PROXY || null

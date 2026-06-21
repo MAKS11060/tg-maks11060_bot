@@ -28,7 +28,9 @@
 ```
 
 ## Deploy
+
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)][cf-deploy]
+
 <!-- [![Deploy on Deno](https://deno.com/button)][deno-deploy] -->
 
 [cf-deploy]: https://deploy.workers.cloudflare.com/?url=https://github.com/MAKS11060/tg-maks11060_bot
