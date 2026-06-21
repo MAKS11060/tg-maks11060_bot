@@ -11,12 +11,6 @@
   },
   "json": {},
   "markdown": {},
-  // "markup": {
-  //   "html.void.selfClosing": false, // remove <img />
-  //   "svelte.scriptIndent": true,
-  //   "svelte.styleIndent": true,
-  //   "printWidth": 120,
-  // },
   "excludes": [
     "**/*.oas.ts",
     "**/*.d.ts",
