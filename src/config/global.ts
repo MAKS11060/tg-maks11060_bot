@@ -1,4 +1,6 @@
 import {env} from 'cloudflare:workers'
 
-/** Used to prevent 403 errors from Cloudflare */
-export const userAgent = env.DANBOORU_USER_AGENT ?? 'https://github.com/MAKS11060/tg-maks11060_bot'
+export const userAgent = env.DANBOORU_USER_AGENT || 'github.com/MAKS11060/tg-maks11060_bot'
+
+export const danbooruUri = env.DANBOORU_URL || 'https://danbooru.donmai.us'
+export const danbooruProxy = env.DANBOORU_PROXY || null
